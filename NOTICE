@@ -1,0 +1,25 @@
+Ashura
+======
+
+Ashura is a hybrid manga + anime client based on:
+
+  Aidoku — https://github.com/Aidoku/Aidoku
+  Sora   — https://github.com/cranci1/Sora
+
+Both Aidoku and Sora are licensed under the GNU General Public License v3.0.
+See LICENSE for the GPL-3.0 text.
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+Ashura also uses:
+
+  ashura-rs     — https://github.com/remmody/ashura-rs
+                  (based on https://github.com/Aidoku/aidoku-rs)
+  AshuraRunner  — https://github.com/remmody/AshuraRunner
+                  (based on https://github.com/Aidoku/AidokuRunner)
+
+Not affiliated with Aidoku, Sora, or their authors.
+Ashura / RemmoDY modifications are copyright their respective authors.
+Translations may be subject to separate licenses (see Shared/Localization).
