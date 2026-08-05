@@ -501,13 +501,22 @@ extension AppDelegate {
 
     func handleUrl(url: URL) {
         if url.scheme == "aidoku" { // aidoku://
-            if url.host == "addSourceList" { // addSourceList?url=
+            if url.host == "addSourceList" || url.host == "addAnimeSourceList" {
                 let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                 if let listUrlString = components?.queryItems?.first(where: { $0.name == "url" })?.value,
                    let listUrl = URL(string: listUrlString) {
-                    guard !SourceManager.shared.sourceListURLs.contains(listUrl) else { return }
+                    let isAnime = url.host == "addAnimeSourceList"
+                    if isAnime {
+                        guard !SourceManager.shared.animeSourceListURLs.contains(listUrl) else { return }
+                    } else {
+                        guard !SourceManager.shared.sourceListURLs.contains(listUrl) else { return }
+                    }
                     Task {
-                        let success = await SourceManager.shared.addSourceList(url: listUrl)
+                        let success = if isAnime {
+                            await SourceManager.shared.addAnimeSourceList(url: listUrl)
+                        } else {
+                            await SourceManager.shared.addSourceList(url: listUrl)
+                        }
                         if success {
                             presentAlert(
                                 title: NSLocalizedString("SOURCE_LIST_ADDED", comment: ""),
