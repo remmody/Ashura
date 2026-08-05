@@ -3,21 +3,33 @@ name: Update AltStore Source
 on:
   release:
     types: [published]
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ashura-pages
+  cancel-in-progress: true
 
 jobs:
   update-source:
+    # Nightlies are published + deployed by nightly.yml; skip duplicate work here.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'release' &&
+       github.event.release.tag_name != 'nightly')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install dependencies
         run: |
@@ -25,16 +37,26 @@ jobs:
           pip install requests
 
       - name: Update AltStore source
-        id: update_source
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          # On manual/stable release events, prefer the event tag when present.
+          ASHURA_RELEASE_TAG: ${{ github.event.release.tag_name || 'nightly' }}
         run: |
           python .github/workflows/supporting/update_altstore_json.py
 
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4.7.2
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          branch: altstore
-          folder: .github/workflows/supporting/altstore
-          git-config-name: GitHub Actions
-          git-config-email: github-actions[bot]@users.noreply.github.com
-          commit-message: Update AltStore Source
-          single-commit: true
+          path: .github/workflows/supporting/altstore
+
+  deploy:
+    needs: update-source
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

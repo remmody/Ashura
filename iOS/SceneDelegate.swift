@@ -21,7 +21,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
             window.rootViewController = TabBarController()
-            window.tintColor = .systemPink
+            // Ashura brand accent from icon palette (electric violet #B026FF)
+            window.tintColor = UIColor(named: "AccentColor")
+                ?? UIColor(red: 0.690, green: 0.149, blue: 1.0, alpha: 1)
 
             if UserDefaults.standard.bool(forKey: "General.useSystemAppearance") {
                 window.overrideUserInterfaceStyle = .unspecified

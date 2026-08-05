@@ -2,6 +2,15 @@ name: Build and upload nightly ipa
 
 on: [push, workflow_dispatch]
 
+concurrency:
+  group: nightly-ipa
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: macos-15
@@ -33,6 +42,7 @@ jobs:
             CODE_SIGN_IDENTITY= \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             > build/xcodebuild.log 2>&1
           STATUS=$?
           set -e
@@ -56,10 +66,66 @@ jobs:
         run: |
           mkdir Payload
           cp -r build/Ashura.xcarchive/Products/Applications/Ashura.app Payload
-          zip -r Ashura-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa Payload
+          # Stable asset name for AltStore/SideStore downloadURL
+          zip -r Ashura.ipa Payload
+          cp Ashura.ipa "Ashura-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa"
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Ashura-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa
-          path: Ashura-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa
+          path: |
+            Ashura.ipa
+            Ashura-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa
           if-no-files-found: error
+      - name: Publish nightly GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NOTES="Automated nightly build from \`${{ github.sha }}\` (run #${{ github.run_number }}).
+
+          Install via AltStore / SideStore:
+          https://remmody.github.io/Ashura/apps.json"
+
+          if gh release view nightly >/dev/null 2>&1; then
+            gh release upload nightly Ashura.ipa --clobber
+            gh release edit nightly \
+              --title "Ashura Nightly" \
+              --prerelease \
+              --notes "$NOTES"
+          else
+            gh release create nightly Ashura.ipa \
+              --title "Ashura Nightly" \
+              --prerelease \
+              --notes "$NOTES"
+          fi
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Update AltStore source JSON
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ASHURA_RELEASE_TAG: nightly
+        run: |
+          python -m pip install --upgrade pip requests
+          python .github/workflows/supporting/update_altstore_json.py
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .github/workflows/supporting/altstore
+
+  deploy-pages:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: ashura-pages
+      cancel-in-progress: true
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

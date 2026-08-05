@@ -1,194 +1,215 @@
-import json
-import re
-import requests
-import zipfile
-import plistlib
+#!/usr/bin/env python3
+"""Update AltStore/SideStore apps.json from Ashura GitHub Releases.
+
+Prefers the floating `nightly` prerelease while stable releases are not the
+primary distribution channel. Falls back to the newest non-draft release
+(including prereleases) that has an .ipa asset.
+"""
+
+from __future__ import annotations
+
 import io
-from datetime import datetime
+import json
+import os
+import plistlib
+import re
+import zipfile
+from datetime import datetime, timezone
 
-bundle_id = "app.aidoku.Aidoku"
-minimum_ios_version = "15.0"
-json_file_name = ".github/workflows/supporting/altstore/apps.json"
-github_repo = "Aidoku/Aidoku"
+import requests
 
-def fetch_latest_release(repo):
-    api_url = f"https://api.github.com/repos/{repo}/releases"
+BUNDLE_ID = "app.remmody.ashura"
+MINIMUM_IOS_VERSION = "15.0"
+JSON_FILE = ".github/workflows/supporting/altstore/apps.json"
+GITHUB_REPO = os.environ.get("GITHUB_REPOSITORY", "remmody/Ashura")
+PREFERRED_TAG = os.environ.get("ASHURA_RELEASE_TAG", "nightly")
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+
+
+def _headers() -> dict[str, str]:
     headers = {
         "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
     }
-    try:
-        response = requests.get(api_url, headers=headers)
-        response.raise_for_status()
-        releases = response.json()
-        if len(releases) == 0:
-            raise ValueError("No release found.")
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    return headers
 
-        sorted_releases = sorted(releases, key=lambda release: datetime.strptime(release["published_at"], "%Y-%m-%dT%H:%M:%SZ"), reverse=True) # Sort from newest to oldest
-        filtered_sorted_releases = list(filter(lambda release: release["draft"] == False and release["prerelease"] == False, sorted_releases)) # filter out drafts and prereleases
-        if len(filtered_sorted_releases) == 0:
-            raise ValueError("An error occured while sorting and filtering releases.")
 
-        return filtered_sorted_releases[0]
-    except requests.RequestException as e:
-        print(f"Error fetching releases: {e}")
-        raise
+def fetch_release_by_tag(repo: str, tag: str) -> dict | None:
+    url = f"https://api.github.com/repos/{repo}/releases/tags/{tag}"
+    response = requests.get(url, headers=_headers(), timeout=60)
+    if response.status_code == 404:
+        return None
+    response.raise_for_status()
+    return response.json()
 
-def remove_tags_and_characters(text):
-    text = re.sub('<[^<]+?>', '', text)
-    text = re.sub(r'#{1,6}\s?', '', text)
-    text = re.sub(r'\*{2}', '', text)
-    text = re.sub(r'-', '•', text)
-    text = re.sub(r'`', '"', text)
-    text = re.sub(r'\r\n', '\n', text)
-    return text
 
-def get_ipa_version_and_build(ipa_path):
-    with zipfile.ZipFile(ipa_path, 'r') as ipa:
+def fetch_latest_release_with_ipa(repo: str) -> dict:
+    url = f"https://api.github.com/repos/{repo}/releases"
+    response = requests.get(url, headers=_headers(), timeout=60)
+    response.raise_for_status()
+    releases = response.json()
+    if not isinstance(releases, list) or not releases:
+        raise ValueError("No releases found.")
+
+    releases = [r for r in releases if not r.get("draft")]
+    releases.sort(
+        key=lambda r: datetime.strptime(r["published_at"], "%Y-%m-%dT%H:%M:%SZ"),
+        reverse=True,
+    )
+    for release in releases:
+        if any(a.get("name", "").endswith(".ipa") for a in release.get("assets", [])):
+            return release
+    raise ValueError("No release with an .ipa asset found.")
+
+
+def pick_ipa_asset(release: dict) -> dict:
+    assets = release.get("assets") or []
+    # Prefer stable Ashura.ipa name used by nightly publishes.
+    for asset in assets:
+        if asset.get("name") == "Ashura.ipa":
+            return asset
+    for asset in assets:
+        if asset.get("name", "").endswith(".ipa"):
+            return asset
+    raise ValueError(".ipa file is not found in release assets")
+
+
+def remove_markup(text: str) -> str:
+    text = re.sub(r"<[^<]+?>", "", text)
+    text = re.sub(r"#{1,6}\s?", "", text)
+    text = re.sub(r"\*{2}", "", text)
+    text = re.sub(r"(?m)^-\s+", "• ", text)
+    text = re.sub(r"`", '"', text)
+    text = text.replace("\r\n", "\n")
+    return text.strip()
+
+
+def get_ipa_version_and_build(ipa_bytes: bytes) -> tuple[str, str]:
+    with zipfile.ZipFile(io.BytesIO(ipa_bytes)) as ipa:
         info_plist_path = None
-        # find info.plist in root of .app
         for name in ipa.namelist():
             if (
-                name.startswith('Payload/') and
-                name.count('/') == 2 and
-                name.endswith('.app/Info.plist')
+                name.startswith("Payload/")
+                and name.count("/") == 2
+                and name.endswith(".app/Info.plist")
             ):
                 info_plist_path = name
                 break
         if not info_plist_path:
             raise FileNotFoundError("Info.plist not found in IPA")
-
         with ipa.open(info_plist_path) as plist_file:
-            plist_data = plist_file.read()
-            plist = plistlib.load(io.BytesIO(plist_data))
+            plist = plistlib.load(plist_file)
+        version = plist.get("CFBundleShortVersionString")
+        build = str(plist.get("CFBundleVersion"))
+        if not version or not build:
+            raise ValueError("IPA Info.plist missing version/build")
+        return str(version), build
 
-        version = plist.get('CFBundleShortVersionString')
-        build = plist.get('CFBundleVersion')
-        return version, build
 
-def update_json_file(json_file, repo):
-    latest_release = fetch_latest_release(repo)
-    try:
-        with open(json_file, "r") as file:
-            data = json.load(file)
-    except json.JSONDecodeError as e:
-        print(f"Error reading JSON file: {e}")
-        raise
+def resolve_release(repo: str) -> dict:
+    preferred = fetch_release_by_tag(repo, PREFERRED_TAG)
+    if preferred and any(
+        a.get("name", "").endswith(".ipa") for a in preferred.get("assets", [])
+    ):
+        print(f"Using preferred release tag '{PREFERRED_TAG}'")
+        return preferred
+    print(f"Preferred tag '{PREFERRED_TAG}' missing/empty; falling back to latest IPA release")
+    return fetch_latest_release_with_ipa(repo)
 
-    if "apps" not in data:
-        print(f"There is no \"apps\" key in {json_file}.")
-        raise
 
-    apps_data = data["apps"]
-    if len(apps_data) == 0:
-        print(f"There is no data for \"apps\" key in {json_file}.")
-        raise
+def update_json_file(json_file: str, repo: str) -> None:
+    release = resolve_release(repo)
+    with open(json_file, "r", encoding="utf-8") as file:
+        data = json.load(file)
 
-    app = apps_data[0]
-    if "versions" not in app:
-        app["versions"] = []
+    apps = data.get("apps") or []
+    if not apps:
+        raise ValueError(f'There is no data for "apps" key in {json_file}.')
 
-    if "assets" not in latest_release:
-        print("There is no \"assets\" key in latest release JSON. It may mean there are no assets other than source code tarball and zipball.")
-        raise
+    app = apps[0]
+    app.setdefault("versions", [])
+    data["featuredApps"] = [BUNDLE_ID]
+    app["bundleIdentifier"] = BUNDLE_ID
+    app["tintColor"] = "B026FF"
 
-    assets = latest_release["assets"]
-    if len(assets) == 0:
-        print("There are no assets other than source code tarball and zipball in latest release JSON.")
-        raise
+    asset = pick_ipa_asset(release)
+    download_url = asset["browser_download_url"]
+    size = asset["size"]
 
-    asset_to_use = None
-    for asset in assets:
-        if asset["name"].endswith(".ipa"):
-            asset_to_use = asset
-            break
- 
-    if asset_to_use is None:
-        print(".ipa file is not found in assets")
-        raise
+    print(f"Downloading IPA from {download_url}")
+    ipa_response = requests.get(download_url, headers=_headers(), timeout=300)
+    ipa_response.raise_for_status()
+    version, build = get_ipa_version_and_build(ipa_response.content)
 
-    data["featuredApps"] = [bundle_id]
-    app["bundleIdentifier"] = bundle_id
-    tag = latest_release["tag_name"]
-    full_version = tag.lstrip('v')
-    version = re.search(r"(\d+\.\d+(\.\d+)?)", full_version).group(1)
-    version_entry_exists = any(item["version"] == version for item in app["versions"])
-    if not version_entry_exists:
-        version_date = latest_release["published_at"]
-        date_obj = datetime.strptime(version_date, "%Y-%m-%dT%H:%M:%SZ")
-        version_date = date_obj.strftime("%Y-%m-%d")
+    published = datetime.strptime(release["published_at"], "%Y-%m-%dT%H:%M:%SZ").replace(
+        tzinfo=timezone.utc
+    )
+    version_date = published.strftime("%Y-%m-%d")
+    tag = release.get("tag_name", "")
+    sha = (release.get("target_commitish") or "")[:7]
+    is_nightly = tag == "nightly" or release.get("prerelease") is True
 
-        description = latest_release["body"]
-        keypharse = "Aidoku Release Information"
-        if keypharse in description:
-            description = description.split(keypharse, 1)[1].strip()
+    description = remove_markup(release.get("body") or "")
+    if not description:
+        description = (
+            f"Nightly build {build}"
+            if is_nightly
+            else f"Release {tag or version}"
+        )
 
-        description = remove_tags_and_characters(description)
+    marketing = (
+        f"Nightly ({sha or build})"
+        if is_nightly
+        else f"{version} ({build})"
+    )
 
-        download_url = asset_to_use["browser_download_url"]
-        size = asset_to_use["size"]
+    version_entry = {
+        "version": version,
+        "date": version_date,
+        "localizedDescription": description,
+        "downloadURL": download_url,
+        "size": size,
+        "minOSVersion": MINIMUM_IOS_VERSION,
+        "buildVersion": build,
+        "marketingVersion": marketing,
+    }
 
-        # download ipa and read version/build number from it
-        ipa_response = requests.get(download_url)
-        ipa_response.raise_for_status()
-        with open("temp.ipa", "wb") as ipa_file:
-            ipa_file.write(ipa_response.content)
-        version, build = get_ipa_version_and_build("temp.ipa")
-
-        version_entry = {
-            "version": version,
-            "date": version_date,
-            "localizedDescription": description,
-            "downloadURL": download_url,
-            "size": size,
-            "minOSVersion": minimum_ios_version,
-            "buildVersion": build
-        }
-        app["versions"].insert(0, version_entry)
-
-# If news update is wanted
-###
-#    if "news" not in data:
-#        data["news"] = []
-#
-#    news_identifier = f"release-{full_version}"
-#    news_entry_exists = any(item["identifier"] == news_identifier for item in data["news"])
-#    if not news_entry_exists:
-#        date_string = date_obj.strftime("%Y/%m/%d")
-#        news_entry = {
-#            "appID": bundle_id,
-#            "caption": f"New version of Aidoku just got released!",
-#            "date": latest_release["published_at"],
-#            "identifier": news_identifier,
-#            "notify": True,
-#            "tintColor": "ff375f",
-#            "title": f"v{full_version}",
-#            "url": f"https://github.com/{repo}/releases/tag/{tag}"
-#        }
-#        data["news"].insert(0, news_entry)
-#
-#    if not version_entry_exists and not news_entry_exists:
-###
-
-# If news update is NOT wanted
-###
-    if not version_entry_exists:
-###
-        try:
-            with open(json_file, "w") as file:
-                json.dump(data, file, indent=2)
-            print("JSON file updated successfully.")
-        except IOError as e:
-            print(f"Error writing to JSON file: {e}")
-            raise
+    # Nightlies: keep a short history keyed by buildVersion; stable: prepend if new.
+    existing = app["versions"]
+    existing = [v for v in existing if v.get("buildVersion") != build]
+    if is_nightly:
+        # Drop older nightlies beyond the newest few with same marketing channel.
+        non_nightly = [
+            v
+            for v in existing
+            if not str(v.get("marketingVersion", "")).startswith("Nightly")
+        ]
+        nightlies = [
+            v
+            for v in existing
+            if str(v.get("marketingVersion", "")).startswith("Nightly")
+        ][:4]
+        app["versions"] = [version_entry] + nightlies + non_nightly
     else:
-        print("No need to update JSON")
+        app["versions"] = [version_entry] + existing
 
-def main():
-    try:
-        update_json_file(json_file_name, github_repo)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        raise
+    # Keep sourceURL pointed at GitHub Pages.
+    data["sourceURL"] = "https://remmody.github.io/Ashura/apps.json"
+    data["identifier"] = "app.remmody.ashura.altstore"
+    data["name"] = "Ashura Source"
+    app["iconURL"] = "https://remmody.github.io/Ashura/icon.png"
+
+    with open(json_file, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=2)
+        file.write("\n")
+    print("JSON file updated successfully.")
+
+
+def main() -> None:
+    update_json_file(JSON_FILE, GITHUB_REPO)
+
 
 if __name__ == "__main__":
     main()

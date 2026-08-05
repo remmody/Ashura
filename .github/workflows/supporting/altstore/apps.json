@@ -1,40 +1,24 @@
 {
-  "name": "Aidoku Source",
-  "identifier": "app.aidoku.altstore",
-  "sourceURL": "https://raw.githubusercontent.com/Aidoku/Aidoku/refs/heads/altstore/apps.json",
-  "subtitle": "Home of Aidoku, free and open source manga reader for iOS and iPadOS",
-  "description": "This is the AltStore Source for Aidoku, free and open source manga reader for iOS and iPadOS.\n\nFor full details on what's included, check the website: https://aidoku.app/",
-  "website": "https://aidoku.app/",
+  "name": "Ashura Source",
+  "identifier": "app.remmody.ashura.altstore",
+  "sourceURL": "https://remmody.github.io/Ashura/apps.json",
+  "subtitle": "Home of Ashura — hybrid manga & anime reader for iOS",
+  "description": "AltStore / SideStore source for Ashura by RemmoDY.\n\nNightly unsigned IPAs from GitHub Actions. Install via AltStore or SideStore, then add anime/manga source lists in Settings.\n\nRepo: https://github.com/remmody/Ashura",
+  "website": "https://github.com/remmody/Ashura",
   "featuredApps": [
-    "app.aidoku.Aidoku"
+    "app.remmody.ashura"
   ],
   "apps": [
     {
-      "name": "Aidoku",
-      "bundleIdentifier": "app.aidoku.Aidoku",
-      "developerName": "Skitty",
-      "subtitle": "Free and open source manga reader for iOS and iPadOS",
-      "localizedDescription": "A free and open source manga reading application for iOS and iPadOS.",
-      "iconURL": "https://aidoku.app/images/apple-touch-icon.png",
-      "tintColor": "ff375f",
+      "name": "Ashura",
+      "bundleIdentifier": "app.remmody.ashura",
+      "developerName": "RemmoDY",
+      "subtitle": "Hybrid manga & anime reader for iOS",
+      "localizedDescription": "Ashura is a hybrid manga and anime client based on Aidoku, with modular .aix sources and a built-in video player for anime streams.",
+      "iconURL": "https://remmody.github.io/Ashura/icon.png",
+      "tintColor": "B026FF",
       "category": "entertainment",
-      "screenshots": [
-        {
-          "imageURL": "https://aidoku.app/images/library.png",
-          "width": 450,
-          "height": 908
-        },
-        {
-          "imageURL": "https://aidoku.app/images/source.png",
-          "width": 450,
-          "height": 908
-        },
-        {
-          "imageURL": "https://aidoku.app/images/reader.png",
-          "width": 450,
-          "height": 908
-        }
-      ],
+      "screenshots": [],
       "appPermissions": {
         "entitlements": [
           "aps-environment",
@@ -46,13 +30,12 @@
           "com.apple.developer.user-fonts"
         ],
         "privacy": {
-          "NSFaceIDUsageDescription": "Aidoku needs FaceID permissions for user-defined settings",
-          "NSPhotoLibraryUsageDescription": "Aidoku needs permission to save pages in your photo library",
-          "NSLocalNetworkUsageDescription": "Aidoku needs permission to connect to local Komga servers"
+          "NSFaceIDUsageDescription": "Ashura needs Face ID permissions for user-defined settings",
+          "NSPhotoLibraryUsageDescription": "Ashura needs permission to save pages in your photo library",
+          "NSLocalNetworkUsageDescription": "Ashura needs permission to connect to local servers"
         }
       },
-      "versions": [
-      ]
+      "versions": []
     }
   ],
   "news": []

@@ -19,9 +19,21 @@ Ashura merges both worlds into a single library, letting you track and read mang
 
 ## Installation
 
+### AltStore / SideStore (nightly)
+
+Source URL:
+
+```
+https://remmody.github.io/Ashura/apps.json
+```
+
+Landing page with one-tap add links: https://remmody.github.io/Ashura/
+
+Nightly unsigned IPAs are published to the [`nightly` release](https://github.com/remmody/Ashura/releases/tag/nightly) and picked up automatically by that source.
+
 ### Manual Installation
 
-Build from source using Xcode, or check the [releases page](https://github.com/remmody/Ashura/releases) / nightly build artifacts for the latest ipa.
+Build from source using Xcode, or download the IPA from the nightly release / Actions artifacts.
 
 ## Contributing
 
