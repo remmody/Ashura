@@ -1,4 +1,4 @@
-﻿//
+//
 //  ShikimoriTracker.swift
 //  Aidoku
 //

@@ -1,4 +1,4 @@
-﻿name: Build and upload nightly ipa
+name: Build and upload nightly ipa
 
 on: [push, workflow_dispatch]
 
@@ -13,13 +13,45 @@ jobs:
           xcode-version: "26.0"
       - name: Install Xcode platforms
         run: |
-          xcrun simctl list > /dev/null # fixes next command sometimes failing
+          xcrun simctl list > /dev/null || true
           xcodebuild -downloadPlatform iOS
       - name: Get commit SHA
         id: commitinfo
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
       - name: Build
-        run: xcodebuild -scheme "Aidoku (iOS)" -configuration Release archive -archivePath build/Ashura.xcarchive -skipPackagePluginValidation CODE_SIGN_IDENTITY= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          set +e
+          xcodebuild \
+            -scheme "Aidoku (iOS)" \
+            -destination "generic/platform=iOS" \
+            -configuration Release \
+            archive \
+            -archivePath build/Ashura.xcarchive \
+            -skipPackagePluginValidation \
+            CODE_SIGN_IDENTITY= \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            > build/xcodebuild.log 2>&1
+          STATUS=$?
+          set -e
+          if [ $STATUS -ne 0 ]; then
+            echo "==== errors ===="
+            grep -E "error:|fatal error:|BUILD FAILED|The following build commands failed" build/xcodebuild.log | tail -n 100 || true
+            echo "==== last 120 lines ===="
+            tail -n 120 build/xcodebuild.log || true
+            exit $STATUS
+          fi
+          echo "Archive OK"
+          tail -n 20 build/xcodebuild.log || true
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: build/xcodebuild.log
+          if-no-files-found: ignore
       - name: Package ipa
         run: |
           mkdir Payload
@@ -31,4 +63,3 @@ jobs:
           name: Ashura-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa
           path: Ashura-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa
           if-no-files-found: error
-
