@@ -26,6 +26,25 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      # Never deploy the empty template alone — SideStore needs versions + top-level downloadURL.
+      - name: Refresh apps.json from nightly IPA
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ASHURA_RELEASE_TAG: nightly
+        run: python .github/workflows/supporting/update_altstore_json.py
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .github/workflows/supporting/altstore

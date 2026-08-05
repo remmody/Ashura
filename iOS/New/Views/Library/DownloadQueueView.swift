@@ -52,6 +52,7 @@ struct DownloadQueueView: View {
                 }
 
                 ForEach(queue, id: \.sourceId) { section in
+                    let sectionSource = SourceManager.shared.source(for: section.sourceId)
                     Section {
                         ForEach(section.downloads) { download in
                             HStack {
@@ -67,7 +68,7 @@ struct DownloadQueueView: View {
                                 VStack(alignment: .leading) {
                                     Text(download.manga.title)
                                         .lineLimit(3)
-                                    Text(download.chapter.formattedTitle())
+                                    Text(download.chapter.formattedTitle(mediaKind: sectionSource?.mediaKind ?? .manga))
                                         .foregroundStyle(.secondary)
                                         .font(.callout)
                                         .lineLimit(1)
@@ -100,14 +101,13 @@ struct DownloadQueueView: View {
                         }
                     } header: {
                         HStack {
-                            let source = SourceManager.shared.source(for: section.sourceId)
                             SourceIconView(
                                 sourceId: section.sourceId,
-                                imageUrl: source?.imageUrl,
+                                imageUrl: sectionSource?.imageUrl,
                                 iconSize: 29
                             )
                             .scaleEffect(0.75)
-                            Text(source?.name ?? section.sourceId)
+                            Text(sectionSource?.name ?? section.sourceId)
                         }
                     }
                 }

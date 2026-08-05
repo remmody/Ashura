@@ -479,7 +479,7 @@ class ReaderViewController: BaseObservingViewController {
 
         let title =
             if let chapterNum = chapter.chapterNumber {
-                String(format: NSLocalizedString("CHAPTER_X", comment: ""), chapterNum)
+                String(format: MediaKindStrings.localized(.unitX, source: source), chapterNum)
             } else if let volumeNum = chapter.volumeNumber {
                 String(format: NSLocalizedString("VOLUME_X", comment: ""), volumeNum)
             } else {
@@ -525,7 +525,8 @@ class ReaderViewController: BaseObservingViewController {
     @objc func openChapterList() {
         var view = ReaderChapterListView(
             chapterList: chapterList,
-            chapter: chapter
+            chapter: chapter,
+            mediaKind: AppMediaKind(source?.mediaKind)
         )
         view.chapterSet = { [weak self] chapter in
             guard let self else { return }
@@ -1230,12 +1231,12 @@ extension ReaderViewController {
                 input: "o"
             ),
             UIKeyCommand(
-                title: NSLocalizedString("CHAPTER_FORWARD"),
+                title: MediaKindStrings.localized(.unitForward, source: source),
                 action: #selector(nextChapter),
                 input: ","
             ),
             UIKeyCommand(
-                title: NSLocalizedString("CHAPTER_BACKWARD"),
+                title: MediaKindStrings.localized(.unitBackward, source: source),
                 action: #selector(previousChapter),
                 input: "."
             ),

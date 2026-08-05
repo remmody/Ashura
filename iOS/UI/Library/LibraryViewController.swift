@@ -58,6 +58,10 @@ class LibraryViewController: OldMangaCollectionViewController {
             NSLocalizedString("LIBRARY_ANIME", comment: "")
         ])
         control.addTarget(self, action: #selector(mediaKindSegmentChanged), for: .valueChanged)
+        if #available(iOS 26.0, *) {
+            // avoid stacking the segmented control's own chrome on top of the bar button's background
+            control.backgroundColor = .clear
+        }
         return control
     }()
 
@@ -544,7 +548,12 @@ extension LibraryViewController {
             }
             items.append(mangaUpdatesButton)
             navigationItem.rightBarButtonItems = items
-            navigationItem.leftBarButtonItem = UIBarButtonItem(customView: mediaKindSegmentedControl)
+            let mediaKindBarButtonItem = UIBarButtonItem(customView: mediaKindSegmentedControl)
+            if #available(iOS 26.0, *) {
+                // avoid double chrome from the segmented control's own background overlapping the bar button background
+                mediaKindBarButtonItem.sharesBackground = false
+            }
+            navigationItem.leftBarButtonItem = mediaKindBarButtonItem
             Task { @MainActor in
                 if await DownloadManager.shared.hasQueuedDownloads() {
                     let index = (navigationItem.rightBarButtonItems?.count ?? 1) - 1

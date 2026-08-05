@@ -109,7 +109,7 @@ struct TrackerView: View {
                     selectedOption: $statusOption
                 )
                 TrackerSettingOptionView(
-                    NSLocalizedString("CHAPTERS", comment: ""),
+                    MediaKindStrings.localized(.units, mediaKind: SourceManager.shared.source(for: manga.sourceKey)?.mediaKind),
                     type: .counter,
                     count: $lastReadChapter,
                     total: Binding.constant(state?.totalChapters != nil ? Float(state!.totalChapters!) : nil)

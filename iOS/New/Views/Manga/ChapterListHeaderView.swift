@@ -10,6 +10,7 @@ import AshuraRunner
 
 struct ChapterListHeaderView: View {
     private let chapterCount: Int?
+    private let mediaKind: AppMediaKind
 
     @Binding var sortOption: ChapterSortOption
     @Binding var sortAscending: Bool
@@ -34,9 +35,11 @@ struct ChapterListHeaderView: View {
         langFilter: Binding<String?>,
         scanlatorFilter: Binding<[String]>,
         displayMode: Binding<ChapterTitleDisplayMode>,
-        mangaUniqueKey: String
+        mangaUniqueKey: String,
+        mediaKind: AppMediaKind = .manga
     ) {
         self.chapterCount = filteredChapters?.count
+        self.mediaKind = mediaKind
         self._sortOption = sortOption
         self._sortAscending = sortAscending
         self._filters = filters
@@ -70,11 +73,14 @@ struct ChapterListHeaderView: View {
         HStack {
             let text = if let chapterCount {
                 if chapterCount == 0 {
-                    NSLocalizedString("NO_CHAPTERS")
+                    MediaKindStrings.localized(.noUnits, mediaKind: mediaKind)
                 } else if chapterCount == 1 {
-                    NSLocalizedString("1_CHAPTER").lowercased()
+                    MediaKindStrings.localized(.oneUnit, mediaKind: mediaKind).lowercased()
                 } else {
-                    String(format: NSLocalizedString("%i_CHAPTERS"), chapterCount).lowercased()
+                    String(
+                        format: MediaKindStrings.localized(.countUnits, mediaKind: mediaKind),
+                        chapterCount
+                    ).lowercased()
                 }
             } else {
                 NSLocalizedString("LOADING_ELLIPSIS")

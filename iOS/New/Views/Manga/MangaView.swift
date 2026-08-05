@@ -84,7 +84,7 @@ struct MangaView: View {
                 if !viewModel.otherDownloadedChapters.isEmpty {
                     VStack {
                         HStack {
-                            Text(NSLocalizedString("DOWNLOADED_CHAPTERS"))
+                            Text(MediaKindStrings.localized(.downloadedUnits, mediaKind: AppMediaKind(viewModel.source?.mediaKind)))
                                 .font(.headline)
                             Spacer()
                         }
@@ -631,11 +631,15 @@ extension MangaView {
     }
 
     var toolbarMarkMenu: some View {
-        Menu(NSLocalizedString("MARK")) {
+        let mediaKind = AppMediaKind(viewModel.source?.mediaKind)
+        return Menu(NSLocalizedString("MARK")) {
             let title = if selectedChapters.count == 1 {
-                NSLocalizedString("1_CHAPTER")
+                MediaKindStrings.localized(.oneUnit, mediaKind: mediaKind)
             } else {
-                String(format: NSLocalizedString("%i_CHAPTERS"), selectedChapters.count)
+                String(
+                    format: MediaKindStrings.localized(.countUnits, mediaKind: mediaKind),
+                    selectedChapters.count
+                )
             }
             Section(title) {
                 Button {
@@ -844,6 +848,7 @@ private struct RightNavbarButton: View, Equatable {
     private let url: URL?
     private let hasDownloads: Bool
     private let isEditing: Bool
+    private let mediaKind: AppMediaKind
     private let refresh: () async -> Void
 
     let markAllRead: () -> Void
@@ -870,6 +875,7 @@ private struct RightNavbarButton: View, Equatable {
         self.hasCategories = !CoreDataManager.shared.getCategoryTitles(sorted: false).isEmpty
         self.url = viewModel.manga.url
         self.hasDownloads = viewModel.downloadStatus.contains(where: { $0.value == .finished })
+        self.mediaKind = AppMediaKind(viewModel.source?.mediaKind)
         self.refresh = refreshController.refresh
 
         self.markAllRead = markAllRead
@@ -914,7 +920,10 @@ private struct RightNavbarButton: View, Equatable {
                             editMode = .active
                         }
                     } label: {
-                        Label(NSLocalizedString("SELECT_CHAPTERS"), systemImage: "checkmark.circle")
+                        Label(
+                            MediaKindStrings.localized(.selectUnits, mediaKind: mediaKind),
+                            systemImage: "checkmark.circle"
+                        )
                     }
                     if bookmarked {
                         if hasCategories {
@@ -972,6 +981,7 @@ private struct RightNavbarButton: View, Equatable {
             && lhs.url == rhs.url
             && lhs.hasDownloads == rhs.hasDownloads
             && lhs.isEditing == rhs.isEditing
+            && lhs.mediaKind == rhs.mediaKind
     }
 }
 

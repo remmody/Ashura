@@ -31,10 +31,9 @@ struct HistoryView: View {
     @EnvironmentObject private var path: NavigationCoordinator
 
     var body: some View {
-        VStack(spacing: 0) {
+        content
+        .safeAreaInset(edge: .top) {
             mediaKindPicker
-
-            content
         }
         .customSearchable(
             text: $searchText,
@@ -153,15 +152,17 @@ struct HistoryView: View {
         }
     }
 
-    // Ashura: manga/anime history segment
+    // Ashura: manga/anime history segment (outside List chrome to avoid double borders)
     var mediaKindPicker: some View {
         Picker("", selection: $mediaKind) {
             Text(NSLocalizedString("HISTORY_MANGA", comment: "")).tag(AppMediaKind.manga)
             Text(NSLocalizedString("HISTORY_ANIME", comment: "")).tag(AppMediaKind.anime)
         }
         .pickerStyle(.segmented)
-        .padding(.horizontal)
-        .padding(.top, 8)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .background(Color(uiColor: .systemBackground))
         .onChange(of: mediaKind) { newValue in
             MediaKindPreferences.historyMediaKind = newValue
             viewModel.mediaKindFilter = newValue
@@ -344,13 +345,14 @@ private struct HistoryEntryCell: View, @MainActor Equatable {
     }
 
     func makeSubtitle() -> String {
+        let mediaKind = SourceManager.shared.source(for: manga?.sourceKey ?? "")?.mediaKind
         var components: [String] = []
         if let volumeNum = chapter?.volumeNumber, volumeNum >= 0 {
             if let chapterNum = chapter?.chapterNumber, chapterNum >= 0 {
                 // both volume number and chapter number
                 components.append([
                     String(format: NSLocalizedString("VOL_X"), volumeNum),
-                    String(format: NSLocalizedString("CH_X"), chapterNum)
+                    String(format: MediaKindStrings.localized(.shortX, mediaKind: mediaKind), chapterNum)
                 ].joined(separator: " "))
             } else {
                 // only volume number
@@ -358,7 +360,7 @@ private struct HistoryEntryCell: View, @MainActor Equatable {
             }
         } else if let chapterNum = chapter?.chapterNumber, chapterNum >= 0 {
             // no volume number, just use chapter number
-            components.append(String(format: NSLocalizedString("CH_SPACE_X"), chapterNum))
+            components.append(String(format: MediaKindStrings.localized(.shortSpaceX, mediaKind: mediaKind), chapterNum))
         } else if let title = chapter?.title, chapter?.chapterNumber == nil && chapter?.volumeNumber == nil {
             // no volume or chapter number, just use the title
             components.append(title)

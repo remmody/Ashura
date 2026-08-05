@@ -11,6 +11,7 @@ import AshuraRunner
 struct ReaderChapterListView: View {
     var chapterList: [AshuraRunner.Chapter]
     @State var chapter: AshuraRunner.Chapter
+    var mediaKind: AppMediaKind = .manga
     var chapterSet: ((AshuraRunner.Chapter) -> Void)?
 
     @Environment(\.dismiss) private var dismiss
@@ -48,7 +49,7 @@ struct ReaderChapterListView: View {
                     proxy.scrollTo(chapter.id, anchor: .center)
                 }
             }
-            .navigationTitle(NSLocalizedString("CHAPTERS", comment: ""))
+            .navigationTitle(MediaKindStrings.localized(.units, mediaKind: mediaKind))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -64,12 +65,14 @@ struct ReaderChapterListView: View {
         if let chapterNum = chapter.chapterNumber {
             if let volumeNum = chapter.volumeNumber {
                 String(
-                    format: NSLocalizedString("VOL_X", comment: "") + " " + NSLocalizedString("CH_X", comment: ""),
+                    format: NSLocalizedString("VOL_X", comment: "")
+                        + " "
+                        + MediaKindStrings.localized(.shortX, mediaKind: mediaKind),
                     volumeNum,
                     chapterNum
                 )
             } else {
-                String(format: NSLocalizedString("CHAPTER_X", comment: ""), chapterNum)
+                String(format: MediaKindStrings.localized(.unitX, mediaKind: mediaKind), chapterNum)
             }
         } else if let volumeNum = chapter.volumeNumber {
             String(format: NSLocalizedString("VOLUME_X", comment: ""), volumeNum)

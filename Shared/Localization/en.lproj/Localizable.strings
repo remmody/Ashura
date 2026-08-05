@@ -53,6 +53,7 @@
 "NO_DOWNLOADS" = "No Downloads";
 "NO_DOWNLOADS_TEXT" = "Downloaded content will appear here.";
 "DOWNLOADED_CHAPTERS" = "Downloaded Chapters";
+"DOWNLOADED_EPISODES" = "Downloaded Episodes";
 "TOTAL_DOWNLOADS" = "Total Downloads";
 "%i_SERIES" = "%i series";
 "IN_LIBRARY" = "In Library";
@@ -337,6 +338,7 @@
 "MISSING_SOURCE" = "Missing Source";
 "MISSING_SOURCE_TEXT" = "The original source seems to be missing for this Manga. Please redownload it or remove this title from your library.";
 "SELECT_CHAPTERS" = "Select Chapters";
+"SELECT_EPISODES" = "Select Episodes";
 "SELECT_ALL" = "Select All";
 "DESELECT_ALL" = "Deselect All";
 "LINK_COPIED" = "Link Copied";
@@ -351,16 +353,25 @@
 "VOLUME" = "Volume";
 "CHAPTER" = "Chapter";
 "CHAPTERS" = "Chapters";
+"EPISODE" = "Episode";
+"EPISODES" = "Episodes";
 "VOLUME_X" = "Volume %g";
 "CHAPTER_X" = "Chapter %g";
+"EPISODE_X" = "Episode %g";
 "VOL_X" = "Vol.%g";
 "CH_X" = "Ch.%g";
+"EP_X" = "Ep.%g";
 "VOL_SPACE_X" = "Vol. %g";
 "CH_SPACE_X" = "Ch. %g";
+"EP_SPACE_X" = "Ep. %g";
 "NO_CHAPTERS" = "No Chapters";
 "NO_CHAPTERS_AVAILABLE" = "No Chapters Available";
+"NO_EPISODES" = "No Episodes";
+"NO_EPISODES_AVAILABLE" = "No Episodes Available";
 "START_READING" = "Start Reading";
 "CONTINUE_READING" = "Continue Reading";
+"START_WATCHING" = "Start Watching";
+"CONTINUE_WATCHING" = "Continue Watching";
 "READ" = "Read";
 "UNREAD" = "Unread";
 "MARK" = "Mark";
@@ -507,6 +518,8 @@
 "DAYS" = "Days";
 "CHAPTER_PLURAL" = "Chapters";
 "CHAPTER_SINGULAR" = "Chapter";
+"EPISODE_PLURAL" = "Episodes";
+"EPISODE_SINGULAR" = "Episode";
 "PAGE_PLURAL" = "Pages";
 "PAGE_SINGULAR" = "Page";
 "SERIES_PLURAL" = "Series";
@@ -720,6 +733,8 @@
 "PINNED" = "Pinned";
 "%i_CHAPTERS" = "%i Chapters";
 "1_CHAPTER" = "1 Chapter";
+"%i_EPISODES" = "%i Episodes";
+"1_EPISODE" = "1 Episode";
 "UPCOMING" = "Upcoming";
 "SELECT" = "Select";
 "ADD" = "Add";
@@ -752,6 +767,8 @@
 "UPLOAD_DATE" = "Upload Date";
 "ALL_CHAPTERS_READ" = "All Chapters Read";
 "ALL_CHAPTERS_LOCKED" = "All Chapters Locked";
+"ALL_EPISODES_READ" = "All Episodes Watched";
+"ALL_EPISODES_LOCKED" = "All Episodes Locked";
 "DEFAULT_READING_MODE" = "Default Reading Mode";
 "PILLARBOX" = "Pillarbox";
 "PILLARBOX_AMOUNT" = "Pillarbox Amount";
@@ -778,6 +795,8 @@
 "TURN_PAGE_RIGHT" = "Turn page right";
 "CHAPTER_FORWARD" = "Chapter forward";
 "CHAPTER_BACKWARD" = "Chapter backward";
+"EPISODE_FORWARD" = "Episode forward";
+"EPISODE_BACKWARD" = "Episode backward";
 "OPEN_CHAPTER_LIST" = "Open chapter list";
 "TOGGLE_BARS" = "Toggle bar visibility";
 "CLOSE_READER" = "Close reader";

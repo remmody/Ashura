@@ -25,6 +25,10 @@ class BrowseViewController: BaseTableViewController {
         ])
         control.selectedSegmentIndex = MediaKindPreferences.browseMediaKind == .anime ? 1 : 0
         control.addTarget(self, action: #selector(mediaKindSegmentChanged), for: .valueChanged)
+        if #available(iOS 26.0, *) {
+            // avoid stacking the segmented control's own chrome on top of the bar button's background
+            control.backgroundColor = .clear
+        }
         return control
     }()
 
@@ -64,17 +68,6 @@ class BrowseViewController: BaseTableViewController {
 
         updateNavbar()
         updateToolbar()
-
-        // Ashura: manga/anime segmented control header
-        let segmentContainer = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 48))
-        segmentContainer.addSubview(mediaKindSegmentedControl)
-        mediaKindSegmentedControl.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            mediaKindSegmentedControl.leadingAnchor.constraint(equalTo: segmentContainer.leadingAnchor, constant: 16),
-            mediaKindSegmentedControl.trailingAnchor.constraint(equalTo: segmentContainer.trailingAnchor, constant: -16),
-            mediaKindSegmentedControl.centerYAnchor.constraint(equalTo: segmentContainer.centerYAnchor)
-        ])
-        tableView.tableHeaderView = segmentContainer
 
         // configure table view
         tableView.dataSource = dataSource
@@ -628,12 +621,20 @@ extension BrowseViewController {
     func updateNavbar(isEditing: Bool? = nil) {
         let isEditing = isEditing ?? self.isEditing
         if isEditing {
+            navigationItem.leftBarButtonItem = nil
             navigationItem.rightBarButtonItems = [UIBarButtonItem(
                 barButtonSystemItem: .done,
                 target: self,
                 action: #selector(stopEditing)
             )]
         } else {
+            let mediaKindBarButtonItem = UIBarButtonItem(customView: mediaKindSegmentedControl)
+            if #available(iOS 26.0, *) {
+                // avoid double chrome from the segmented control's own background overlapping the bar button background
+                mediaKindBarButtonItem.sharesBackground = false
+            }
+            navigationItem.leftBarButtonItem = mediaKindBarButtonItem
+
             let addSourceBarButton = UIBarButtonItem(
                 image: UIImage(systemName: "plus"),
                 style: .plain,

@@ -39,7 +39,7 @@ enum Settings {
                 value: .page(.init(
                     items: librarySettings,
                     inlineTitle: true,
-                    icon: .system(name: "books.vertical.fill", color: "red")
+                    icon: .system(name: "books.vertical.fill", color: "#B026FF")
                 ))
             ),
             .init(
@@ -123,7 +123,7 @@ enum Settings {
                 value: .page(.init(
                     items: [],
                     inlineTitle: true,
-                    icon: .system(name: "externaldrive.fill", color: "red")
+                    icon: .system(name: "externaldrive.fill", color: "#B026FF")
                 ))
             ),
             .init(

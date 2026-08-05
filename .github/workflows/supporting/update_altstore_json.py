@@ -8,6 +8,7 @@ primary distribution channel. Falls back to the newest non-draft release
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import os
@@ -86,7 +87,7 @@ def remove_markup(text: str) -> str:
     return text.strip()
 
 
-def get_ipa_version_and_build(ipa_bytes: bytes) -> tuple[str, str]:
+def get_ipa_version_and_build(ipa_bytes: bytes) -> tuple[str, str, str | None]:
     with zipfile.ZipFile(io.BytesIO(ipa_bytes)) as ipa:
         info_plist_path = None
         for name in ipa.namelist():
@@ -105,7 +106,12 @@ def get_ipa_version_and_build(ipa_bytes: bytes) -> tuple[str, str]:
         build = str(plist.get("CFBundleVersion"))
         if not version or not build:
             raise ValueError("IPA Info.plist missing version/build")
-        return str(version), build
+        min_os_version = plist.get("MinimumOSVersion")
+        return str(version), build, str(min_os_version) if min_os_version else None
+
+
+def compute_sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
 def resolve_release(repo: str) -> dict:
@@ -141,7 +147,9 @@ def update_json_file(json_file: str, repo: str) -> None:
     print(f"Downloading IPA from {download_url}")
     ipa_response = requests.get(download_url, headers=_headers(), timeout=300)
     ipa_response.raise_for_status()
-    version, build = get_ipa_version_and_build(ipa_response.content)
+    ipa_bytes = ipa_response.content
+    version, build, ipa_min_os_version = get_ipa_version_and_build(ipa_bytes)
+    sha256 = compute_sha256(ipa_bytes)
 
     published = datetime.strptime(release["published_at"], "%Y-%m-%dT%H:%M:%SZ").replace(
         tzinfo=timezone.utc
@@ -171,9 +179,10 @@ def update_json_file(json_file: str, repo: str) -> None:
         "localizedDescription": description,
         "downloadURL": download_url,
         "size": size,
-        "minOSVersion": MINIMUM_IOS_VERSION,
+        "minOSVersion": ipa_min_os_version or MINIMUM_IOS_VERSION,
         "buildVersion": build,
         "marketingVersion": marketing,
+        "sha256": sha256,
     }
 
     # Nightlies: keep a short history keyed by buildVersion; stable: prepend if new.
@@ -194,6 +203,16 @@ def update_json_file(json_file: str, repo: str) -> None:
         app["versions"] = [version_entry] + nightlies + non_nightly
     else:
         app["versions"] = [version_entry] + existing
+
+    # SideStore still requires legacy top-level download fields even when
+    # `versions` is present (AltStore does not). Mirror the latest entry.
+    latest = app["versions"][0]
+    app["version"] = latest["version"]
+    app["versionDate"] = latest["date"]
+    app["downloadURL"] = latest["downloadURL"]
+    app["size"] = latest["size"]
+    if latest.get("minOSVersion"):
+        app["minimumSystemVersion"] = latest["minOSVersion"]
 
     # Keep sourceURL pointed at GitHub Pages.
     data["sourceURL"] = "https://remmody.github.io/Ashura/apps.json"

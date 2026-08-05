@@ -27,16 +27,6 @@ struct SourceListsView: View {
     var body: some View {
         List {
             Section {
-                Picker("", selection: $mediaKind) {
-                    Text(NSLocalizedString("SOURCE_LISTS_MANGA", comment: "")).tag(AppMediaKind.manga)
-                    Text(NSLocalizedString("SOURCE_LISTS_ANIME", comment: "")).tag(AppMediaKind.anime)
-                }
-                .pickerStyle(.segmented)
-                .listRowInsets(EdgeInsets())
-                .padding(.vertical, 4)
-            }
-
-            Section {
                 ForEach(sourceLists, id: \.url) { sourceList in
                     listItem(name: sourceList.name, url: sourceList.url)
                 }
@@ -54,6 +44,17 @@ struct SourceListsView: View {
                     Text(NSLocalizedString("UNAVAILABLE_SOURCE_LISTS_TEXT"))
                 }
             }
+        }
+		.safeAreaInset(edge: .top) {
+            Picker("", selection: $mediaKind) {
+                Text(NSLocalizedString("SOURCE_LISTS_MANGA", comment: "")).tag(AppMediaKind.manga)
+                Text(NSLocalizedString("SOURCE_LISTS_ANIME", comment: "")).tag(AppMediaKind.anime)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(Color(uiColor: .systemGroupedBackground))
         }
         .overlay {
             if loading {

@@ -250,12 +250,18 @@ extension AshuraRunner.SourceContentRating {
 }
 
 extension AshuraRunner.Chapter {
-    func formattedTitle(forceMode: ChapterTitleDisplayMode = .default) -> String {
+    func formattedTitle(
+        forceMode: ChapterTitleDisplayMode = .default,
+        mediaKind: AshuraRunner.MediaKind = .manga
+    ) -> String {
+        let unitXKey = MediaKindStrings.localizationKey(for: .unitX, mediaKind: AppMediaKind(mediaKind))
+        let shortXKey = MediaKindStrings.localizationKey(for: .shortX, mediaKind: AppMediaKind(mediaKind))
+
         if forceMode == .default {
             if volumeNumber == nil && (title?.isEmpty ?? true) {
                 // Chapter X
                 return if let chapterNumber {
-                    String(format: NSLocalizedString("CHAPTER_X"), chapterNumber)
+                    String(format: NSLocalizedString(unitXKey), chapterNumber)
                 } else {
                     NSLocalizedString("UNTITLED")
                 }
@@ -272,7 +278,7 @@ extension AshuraRunner.Chapter {
                 // Ch.X
                 if let chapterNumber {
                     components.append(
-                        String(format: NSLocalizedString("CH_X"), chapterNumber)
+                        String(format: NSLocalizedString(shortXKey), chapterNumber)
                     )
                 }
                 // title
@@ -288,9 +294,9 @@ extension AshuraRunner.Chapter {
             var components: [String] = []
             if forceMode == .chapter {
                 if let chapterNumber {
-                    components.append(String(format: NSLocalizedString("CHAPTER_X"), chapterNumber))
+                    components.append(String(format: NSLocalizedString(unitXKey), chapterNumber))
                 } else if let volumeNumber {
-                    components.append(String(format: NSLocalizedString("CHAPTER_X"), volumeNumber))
+                    components.append(String(format: NSLocalizedString(unitXKey), volumeNumber))
                 }
             } else {
                 if let volumeNumber {

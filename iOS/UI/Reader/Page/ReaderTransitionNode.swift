@@ -26,11 +26,12 @@ class ReaderTransitionNode: ASDisplayNode {
     private var lastWidth: CGFloat = 0
 
     func title(for chapter: Chapter) -> String {
+        let mediaKind = SourceManager.shared.source(for: chapter.sourceId)?.mediaKind
         switch (chapter.volumeNum, chapter.chapterNum, chapter.title) {
             case (.some(let volumeNum), nil, nil):
                 return String(format: NSLocalizedString("VOLUME_X", comment: ""), volumeNum)
             case (nil, .some(let chapterNum), nil):
-                return String(format: NSLocalizedString("CHAPTER_X", comment: ""), chapterNum)
+                return String(format: MediaKindStrings.localized(.unitX, mediaKind: mediaKind), chapterNum)
             case (nil, nil, .some(let chapterTitle)): return chapterTitle
             default:
                 var arr = [String]()
@@ -38,7 +39,7 @@ class ReaderTransitionNode: ASDisplayNode {
                     arr.append(String(format: NSLocalizedString("VOL_X", comment: ""), volumeNum))
                 }
                 if let chapterNum = chapter.chapterNum {
-                    arr.append(String(format: NSLocalizedString("CH_X", comment: ""), chapterNum))
+                    arr.append(String(format: MediaKindStrings.localized(.shortX, mediaKind: mediaKind), chapterNum))
                 }
                 if let chapterTitle = chapter.title {
                     arr.append("-")

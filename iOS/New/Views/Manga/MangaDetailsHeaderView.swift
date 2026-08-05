@@ -214,7 +214,8 @@ struct MangaDetailsHeaderView: View {
                     langFilter: $langFilter,
                     scanlatorFilter: $scanlatorFilter,
                     displayMode: $chapterTitleDisplayMode,
-                    mangaUniqueKey: manga.uniqueKey
+                    mangaUniqueKey: manga.uniqueKey,
+                    mediaKind: AppMediaKind(source?.mediaKind)
                 )
                 .padding(.horizontal, 20)
                 .padding(.bottom, 10)
@@ -440,12 +441,13 @@ struct MangaDetailsHeaderView: View {
     }
 
     func updateReadButtonText() {
+        let mediaKind = AppMediaKind(source?.mediaKind)
         var title = ""
         if allChaptersLocked {
-            title = NSLocalizedString("ALL_CHAPTERS_LOCKED", comment: "")
+            title = MediaKindStrings.localized(.allUnitsLocked, mediaKind: mediaKind)
             readButtonDisabled = true
         } else if allChaptersRead {
-            title = NSLocalizedString("ALL_CHAPTERS_READ", comment: "")
+            title = MediaKindStrings.localized(.allUnitsRead, mediaKind: mediaKind)
             readButtonDisabled = true
         } else if source == nil {
             title = NSLocalizedString("UNAVAILABLE", comment: "")
@@ -453,10 +455,11 @@ struct MangaDetailsHeaderView: View {
         } else {
             if let chapter = nextChapter {
                 if !readingInProgress {
-                    title = NSLocalizedString("START_READING", comment: "")
+                    title = MediaKindStrings.localized(.startAction, mediaKind: mediaKind)
                 } else {
-                    title = NSLocalizedString("CONTINUE_READING", comment: "")
+                    title = MediaKindStrings.localized(.continueAction, mediaKind: mediaKind)
                 }
+                let shortXKey = MediaKindStrings.localizationKey(for: .shortX, mediaKind: mediaKind)
                 switch chapterTitleDisplayMode {
                     case .volume:
                         if let volumeNum = chapter.volumeNumber {
@@ -467,21 +470,21 @@ struct MangaDetailsHeaderView: View {
                         }
                     case .chapter:
                         if let chapterNum = chapter.chapterNumber {
-                            title += " " + String(format: NSLocalizedString("CH_X"), chapterNum)
+                            title += " " + String(format: NSLocalizedString(shortXKey), chapterNum)
                         } else if let volumeNum = chapter.volumeNumber {
                             // Force display as chapter if no chapter number
-                            title += " " + String(format: NSLocalizedString("CH_X"), volumeNum)
+                            title += " " + String(format: NSLocalizedString(shortXKey), volumeNum)
                         }
                     case .default:
                         if let volumeNum = chapter.volumeNumber {
                             title += " " + String(format: NSLocalizedString("VOL_X"), volumeNum)
                         }
                         if let chapterNum = chapter.chapterNumber {
-                            title += " " + String(format: NSLocalizedString("CH_X"), chapterNum)
+                            title += " " + String(format: NSLocalizedString(shortXKey), chapterNum)
                         }
                 }
             } else {
-                title = NSLocalizedString("NO_CHAPTERS_AVAILABLE", comment: "")
+                title = MediaKindStrings.localized(.noUnitsAvailable, mediaKind: mediaKind)
             }
             readButtonDisabled = false
         }

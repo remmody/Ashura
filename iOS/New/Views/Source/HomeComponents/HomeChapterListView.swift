@@ -122,7 +122,7 @@ struct HomeChapterListView: View {
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
-                    Text(entry.chapter.formattedTitle())
+                    Text(entry.chapter.formattedTitle(mediaKind: source.mediaKind))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
 

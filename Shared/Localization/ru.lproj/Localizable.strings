@@ -61,17 +61,25 @@
 "SOURCE_ORDER" = "Исходный порядок";
 "MISSING_SOURCE" = "Отсутствует источник";
 "SELECT_CHAPTERS" = "Выбор глав";
+"SELECT_EPISODES" = "Выбор серий";
 "SELECT_ALL" = "Выбрать всё";
 "DESELECT_ALL" = "Отменить выбор всех";
 
 // Reader
 "CHAPTER" = "Глава";
 "CHAPTERS" = "Главы";
+"EPISODE" = "Серия";
+"EPISODES" = "Серии";
 "CHAPTER_X" = "Глава %g";
+"EPISODE_X" = "Серия %g";
 "NO_CHAPTERS" = "Нет Глав";
 "NO_CHAPTERS_AVAILABLE" = "Нет доступных глав";
+"NO_EPISODES" = "Нет серий";
+"NO_EPISODES_AVAILABLE" = "Нет доступных серий";
 "START_READING" = "Начать читать";
 "CONTINUE_READING" = "Продолжить чтение";
+"START_WATCHING" = "Начать просмотр";
+"CONTINUE_WATCHING" = "Продолжить просмотр";
 "READ" = "Читать";
 "UNREAD" = "Непрочитанные";
 "MARK" = "Отметить";
@@ -91,8 +99,10 @@
 "VOLUME_X" = "Том, %g";
 "VOL_X" = "Том%g";
 "CH_X" = "Гл.%g";
+"EP_X" = "С.%g";
 "VOL_SPACE_X" = "Том %g";
 "CH_SPACE_X" = "Гл. %g";
+"EP_SPACE_X" = "Сер. %g";
 "SAVE_TO_PHOTOS" = "Сохранить в фотографиях";
 "%@_AGO" = "%@ назад";
 "PAGE_X" = "Страница %i";
@@ -262,6 +272,7 @@
 "MIGRATE_SOURCES" = "Мигрировать источники";
 "MIGRATE_ONE_ITEM?" = "Мигрировать 1 штуку?";
 "ALL_CHAPTERS_READ" = "Все главы прочитаны";
+"ALL_EPISODES_READ" = "Все серии просмотрены";
 "UPLOAD_DATE" = "Дата загрузки";
 "SELECT" = "Выбрать";
 "ADD_TO_CATEGORY" = "Добавит в Категорию";
@@ -303,6 +314,8 @@
 "REMOVE_FROM_CATEGORY" = "Удалить из Категории";
 "%i_CHAPTERS" = "%i Глав";
 "1_CHAPTER" = "1 Глава";
+"%i_EPISODES" = "%i серий";
+"1_EPISODE" = "1 серия";
 "UPCOMING" = "Предстоящие";
 "RENAME_CATEGORY_FAIL_INFO" = "Названия Категорий должны быть различными.";
 "COPY" = "Скопировать";
@@ -478,12 +491,14 @@
 "SOURCE_BREAKING_CHANGE" = "Изменения источника";
 "SOURCE_BREAKING_CHANGE_TEXT" = "Этот источник имеет изменения и требует миграции для сохранения вашей библиотеки и истории.";
 "ALL_CHAPTERS_LOCKED" = "Все главы заблокированы";
+"ALL_EPISODES_LOCKED" = "Все серии заблокированы";
 "OEL" = "OEL";
 "%@_EXPERIMENTAL" = "%@ (Экспериментальный)";
 "UPSCALING" = "Масштабирование";
 "NO_DOWNLOADS" = "Нет загрузок";
 "NO_DOWNLOADS_TEXT" = "Загруженное содержимое появится здесь.";
 "DOWNLOADED_CHAPTERS" = "Загруженные главы";
+"DOWNLOADED_EPISODES" = "Загруженные серии";
 "TOTAL_DOWNLOADS" = "Всего скачиваний";
 "%i_SERIES" = "серия %i";
 "IN_LIBRARY" = "В библиотеке";
@@ -544,6 +559,8 @@
 "TURN_PAGE_RIGHT" = "Перелистать страницу вправо";
 "CHAPTER_FORWARD" = "Глава вперед";
 "CHAPTER_BACKWARD" = "Глава назад";
+"EPISODE_FORWARD" = "Серия вперед";
+"EPISODE_BACKWARD" = "Серия назад";
 "OPEN_CHAPTER_LIST" = "Открыть список глав";
 "CLOSE_READER" = "Закрыть читалку";
 "DOWNLOADING" = "Скачивание";
@@ -614,6 +631,8 @@
 "DAYS" = "Дни";
 "CHAPTER_PLURAL" = "Главы";
 "CHAPTER_SINGULAR" = "Глава";
+"EPISODE_PLURAL" = "Серии";
+"EPISODE_SINGULAR" = "Серия";
 "PAGE_PLURAL" = "Страницы";
 "PAGE_SINGULAR" = "Страница";
 "SERIES_PLURAL" = "Серии";

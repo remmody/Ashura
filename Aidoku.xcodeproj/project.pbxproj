@@ -28,6 +28,8 @@
 		48E20A272B78420E00BFFED8 /* NavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E20A262B78420E00BFFED8 /* NavigationController.swift */; };
 		56815D982FBC7078001486C8 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56815D972FBC7078001486C8 /* NotificationManager.swift */; };
 		56815D992FBC7078001486C8 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56815D972FBC7078001486C8 /* NotificationManager.swift */; };
+		A5MEDIAA000000000000003 /* MediaKindStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5MEDIAA000000000000001 /* MediaKindStrings.swift */; };
+		A5MEDIAA000000000000004 /* MediaKindStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5MEDIAA000000000000001 /* MediaKindStrings.swift */; };
 		A5FACADE00000000000A0002 /* MediaKindPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FACADE00000000000A0001 /* MediaKindPreferences.swift */; };
 		A5FACADE00000000000A0003 /* MediaKindPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FACADE00000000000A0001 /* MediaKindPreferences.swift */; };
 		A5FACADE00000000000B0002 /* ContinueWatchingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FACADE00000000000B0001 /* ContinueWatchingStore.swift */; };
@@ -639,6 +641,7 @@
 		4875B8242BA6F2C3001E39CA /* MangaUpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaUpdateManager.swift; sourceTree = "<group>"; };
 		48E20A262B78420E00BFFED8 /* NavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationController.swift; sourceTree = "<group>"; };
 		56815D972FBC7078001486C8 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		A5MEDIAA000000000000001 /* MediaKindStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKindStrings.swift; sourceTree = "<group>"; };
 		A5FACADE00000000000A0001 /* MediaKindPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKindPreferences.swift; sourceTree = "<group>"; };
 		A5FACADE00000000000B0001 /* ContinueWatchingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingStore.swift; sourceTree = "<group>"; };
 		A5FACADE00000000000C0001 /* VideoPlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerViewController.swift; sourceTree = "<group>"; };
@@ -1561,6 +1564,7 @@
 				37F3E66C2850F62100A944E0 /* Collection.swift */,
 				FB0CAA5528A6BF8A0024561A /* NSPersistentContainer.swift */,
 				FB662EF22DA81B8200007514 /* AshuraRunner.swift */,
+				A5MEDIAA000000000000001 /* MediaKindStrings.swift */,
 				FB4ADCA32814E5E700F6D7FB /* NSLocalizedString.swift */,
 				FB8E48E02DC15DCD002A3621 /* NotificationName.swift */,
 				002C0AC02EC0F44D0071CE82 /* LAPolicy.swift */,
@@ -2668,6 +2672,7 @@
 				FB8E318B2DB98AFE0084F899 /* ChapterListHeaderView.swift in Sources */,
 				FB662F0D2DA81B8200007514 /* MangaGridButtonStyle.swift in Sources */,
 				FB662F0E2DA81B8200007514 /* AshuraRunner.swift in Sources */,
+				A5MEDIAA000000000000003 /* MediaKindStrings.swift in Sources */,
 				FB662F102DA81B8200007514 /* EdgeInsets.swift in Sources */,
 				FB662F112DA81B8200007514 /* ListButtonStyle.swift in Sources */,
 				FBF059B72EF7013600907B0E /* InsightsData.swift in Sources */,
@@ -3201,6 +3206,7 @@
 				FB1B4867277CE76B0056D02C /* Chapter.swift in Sources */,
 				FB261ED62ECB8B8400743F56 /* LogEntry.swift in Sources */,
 				FB14B12A2DF4D20F0067E4D4 /* AshuraRunner.swift in Sources */,
+				A5MEDIAA000000000000004 /* MediaKindStrings.swift in Sources */,
 				FBF925972F4DFB6B0049CB43 /* MangaBakaTracker.swift in Sources */,
 				FB63D5012E38124E004FF4DC /* EditedKeys.swift in Sources */,
 				FBA748A12E81C0D200D9BE86 /* BangumiTracker.swift in Sources */,

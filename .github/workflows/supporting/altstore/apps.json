@@ -2,7 +2,7 @@
   "name": "Ashura Source",
   "identifier": "app.remmody.ashura.altstore",
   "sourceURL": "https://remmody.github.io/Ashura/apps.json",
-  "subtitle": "Home of Ashura — hybrid manga & anime reader for iOS",
+  "subtitle": "Home of Ashura \u2014 hybrid manga & anime reader for iOS",
   "description": "AltStore / SideStore source for Ashura by RemmoDY.\n\nNightly unsigned IPAs from GitHub Actions. Install via AltStore or SideStore, then add anime/manga source lists in Settings.\n\nRepo: https://github.com/remmody/Ashura",
   "website": "https://github.com/remmody/Ashura",
   "featuredApps": [
@@ -35,7 +35,24 @@
           "NSLocalNetworkUsageDescription": "Ashura needs permission to connect to local servers"
         }
       },
-      "versions": []
+      "versions": [
+        {
+          "version": "0.8.4",
+          "date": "2026-08-05",
+          "localizedDescription": "Automated nightly build from \"9eacbc331e38d56a78d214e4d9e938796caca932\" (run 12).\n\nInstall via AltStore / SideStore:\nhttps://remmody.github.io/Ashura/apps.json",
+          "downloadURL": "https://github.com/remmody/Ashura/releases/download/nightly/Ashura.ipa",
+          "size": 9616215,
+          "minOSVersion": "15.0",
+          "buildVersion": "12",
+          "marketingVersion": "Nightly (main)",
+          "sha256": "685933e4ef1e7b840f99130f1556e324110a9b54cbdd760393094c81e752e475"
+        }
+      ],
+      "version": "0.8.4",
+      "versionDate": "2026-08-05",
+      "downloadURL": "https://github.com/remmody/Ashura/releases/download/nightly/Ashura.ipa",
+      "size": 9616215,
+      "minimumSystemVersion": "15.0"
     }
   ],
   "news": []
