@@ -9,15 +9,16 @@ import AshuraRunner
 import SwiftUI
 import UIKit
 
-/// Loads a chapter's pages, resolves which stream quality to play (asking the user only
-/// when necessary), then embeds `VideoPlayerViewController` full screen. Used for `.anime`
-/// sources so watching an episode doesn't route through the manga reader.
+/// Loads a chapter's stream pages, auto-picks preferred/best quality (Sora-style), then
+/// presents `VideoPlayerViewController`. Quality can be changed from inside the player —
+/// there is no blocking action-sheet that races with playback.
 class StreamPlaybackViewController: UIViewController {
     private let source: AshuraRunner.Source?
     private let manga: AshuraRunner.Manga
     private let chapter: AshuraRunner.Chapter
 
-    private var playerNavigationController: UINavigationController?
+    private var didStartLoad = false
+    private var embeddedPlayer: VideoPlayerViewController?
 
     private lazy var activityIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .large)
@@ -51,10 +52,15 @@ class StreamPlaybackViewController: UIViewController {
         ])
         activityIndicator.startAnimating()
 
+        guard !didStartLoad else { return }
+        didStartLoad = true
         Task {
             await loadAndPlay()
         }
     }
+
+    override var prefersStatusBarHidden: Bool { true }
+    override var prefersHomeIndicatorAutoHidden: Bool { true }
 
     private func loadAndPlay() async {
         let sourceId = source?.key ?? manga.sourceKey
@@ -63,69 +69,23 @@ class StreamPlaybackViewController: UIViewController {
         let streamPages = pages.filter(\.isStreamPage)
 
         guard !streamPages.isEmpty else {
-            showLoadFailAlertAndDismiss()
+            await MainActor.run { showLoadFailAlertAndDismiss() }
             return
         }
 
-        // Always offer a quality sheet when there are multiple streams, so tapping an
-        // episode never drops the user into the manga reader first. Preferred quality is
-        // remembered and used as the default pick order next time via StreamQualityStore.
-        if streamPages.count > 1 {
-            presentQualityPicker(streamPages)
-        } else if let only = streamPages.first {
-            if let quality = only.streamQuality {
-                StreamQualityStore.setPreferredQuality(quality)
-            }
-            play(only)
-        } else {
-            showLoadFailAlertAndDismiss()
-        }
-    }
-
-    private func presentQualityPicker(_ streamPages: [Page]) {
-        activityIndicator.stopAnimating()
-
-        // Put preferred / best-match first so the remembered choice is easy to tap.
-        let preferred = StreamQualityStore.pick(from: streamPages)
-        var ordered = streamPages
-        if let preferred, let idx = ordered.firstIndex(where: { $0.streamURL == preferred.streamURL }) {
-            ordered.remove(at: idx)
-            ordered.insert(preferred, at: 0)
-        }
-
-        let sheet = UIAlertController(
-            title: NSLocalizedString("SELECT_QUALITY", comment: ""),
-            message: nil,
-            preferredStyle: .actionSheet
-        )
-        for page in ordered {
-            var label = page.streamQuality ?? page.streamURL ?? "Stream"
-            if page.streamURL == preferred?.streamURL {
-                label += " ★"
-            }
-            sheet.addAction(UIAlertAction(title: label, style: .default) { [weak self] _ in
-                if let quality = page.streamQuality {
-                    StreamQualityStore.setPreferredQuality(quality)
-                }
-                self?.play(page)
-            })
-        }
-        sheet.addAction(UIAlertAction(title: NSLocalizedString("CANCEL", comment: ""), style: .cancel) { [weak self] _ in
-            self?.dismiss(animated: true)
-        })
-        if let pop = sheet.popoverPresentationController {
-            pop.sourceView = view
-            pop.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1)
-        }
-        present(sheet, animated: true)
-    }
-
-    private func play(_ page: Page) {
-        activityIndicator.stopAnimating()
-        guard let urlString = page.streamURL, let url = URL(string: urlString) else {
-            showLoadFailAlertAndDismiss()
+        // Auto-pick remembered / best available quality — never open a sheet under a playing video.
+        guard let picked = StreamQualityStore.pick(from: streamPages),
+              let pickedURL = picked.streamURL.flatMap(URL.init(string:))
+        else {
+            await MainActor.run { showLoadFailAlertAndDismiss() }
             return
         }
+
+        let options: [VideoPlayerViewController.StreamOption] = streamPages.compactMap { page in
+            guard let urlString = page.streamURL, let url = URL(string: urlString) else { return nil }
+            return .init(url: url, quality: page.streamQuality, headers: page.streamHeaders)
+        }
+        let initialIndex = options.firstIndex(where: { $0.url.absoluteString == pickedURL.absoluteString }) ?? 0
 
         let progressKey = ContinueWatchingStore.makeKey(
             sourceId: manga.sourceKey,
@@ -133,37 +93,49 @@ class StreamPlaybackViewController: UIViewController {
             chapterId: chapter.key
         )
         let startPosition = ContinueWatchingStore.progress(key: progressKey)?.position ?? 0
-        let titleSuffix = page.streamQuality.map { " (\($0))" } ?? ""
+
+        await MainActor.run {
+            activityIndicator.stopAnimating()
+            presentPlayer(
+                options: options,
+                initialIndex: initialIndex,
+                startPosition: startPosition,
+                progressKey: progressKey
+            )
+        }
+    }
+
+    private func presentPlayer(
+        options: [VideoPlayerViewController.StreamOption],
+        initialIndex: Int,
+        startPosition: Double,
+        progressKey: String
+    ) {
+        // Replace any previous embed (SwiftUI can recreate the host unexpectedly).
+        if let embeddedPlayer {
+            embeddedPlayer.willMove(toParent: nil)
+            embeddedPlayer.view.removeFromSuperview()
+            embeddedPlayer.removeFromParent()
+            self.embeddedPlayer = nil
+        }
+
         let player = VideoPlayerViewController(
-            streamURL: url,
-            headers: page.streamHeaders,
-            title: (chapter.title ?? manga.title) + titleSuffix,
+            streams: options,
+            initialIndex: initialIndex,
+            title: chapter.title ?? manga.title,
             startPosition: startPosition,
             progressKey: progressKey
         )
-        player.navigationItem.rightBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .done,
-            target: self,
-            action: #selector(donePlaying)
-        )
+        player.onClose = { [weak self] in
+            self?.dismiss(animated: true)
+        }
 
-        let nav = UINavigationController(rootViewController: player)
-        nav.overrideUserInterfaceStyle = .dark
-        embed(nav)
-    }
-
-    private func embed(_ nav: UINavigationController) {
-        addChild(nav)
-        nav.view.frame = view.bounds
-        nav.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        nav.view.backgroundColor = .black
-        view.addSubview(nav.view)
-        nav.didMove(toParent: self)
-        playerNavigationController = nav
-    }
-
-    @objc private func donePlaying() {
-        dismiss(animated: true)
+        addChild(player)
+        player.view.frame = view.bounds
+        player.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(player.view)
+        player.didMove(toParent: self)
+        embeddedPlayer = player
     }
 
     private func showLoadFailAlertAndDismiss() {
@@ -188,6 +160,7 @@ struct SwiftUIStreamPlayerController: View {
 
     var body: some View {
         _SwiftUIStreamPlayerController(source: source, manga: manga, chapter: chapter)
+            .ignoresSafeArea()
     }
 }
 
@@ -215,7 +188,6 @@ private struct _SwiftUIStreamPlayerController: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: StreamPlaybackViewController, context: Context) {
-        // playback is set up once in viewDidLoad; SwiftUI presents a fresh instance whenever
-        // the fullScreenCover's `chapter` item identity changes.
+        // Playback is set up once; identity changes recreate this representable via fullScreenCover.
     }
 }

@@ -888,81 +888,43 @@ extension ReaderViewController: ReaderHoldingDelegate {
         }
     }
 
-    /// Ashura: presents the video player for `.stream` page(s). If multiple qualities exist, ask first.
+    /// Ashura: presents the video player for `.stream` page(s).
     ///
-    /// This is a legacy fallback path — anime chapters are normally routed to
-    /// `StreamPlaybackViewController` before ever reaching the reader — but it's kept in case a
-    /// stream chapter is opened inside the reader directly (e.g. from a download or old entry point).
+    /// Legacy fallback — anime chapters normally go through `StreamPlaybackViewController`.
+    /// Auto-picks preferred/best quality (Sora-style); quality switches live inside the player.
     private func presentStreamPlayer(from streamPages: [Page]) {
         activityIndicator.stopAnimating()
 
-        // Mirror StreamPlaybackViewController: always show the quality sheet when there are
-        // multiple streams; mark the remembered/best-match quality so it's easy to re-pick.
-        if streamPages.count == 1 {
-            if let quality = streamPages[0].streamQuality {
-                StreamQualityStore.setPreferredQuality(quality)
-            }
-            presentStreamPlayer(for: streamPages[0])
-            return
+        let options: [VideoPlayerViewController.StreamOption] = streamPages.compactMap { page in
+            guard let urlString = page.streamURL, let url = URL(string: urlString) else { return nil }
+            return .init(url: url, quality: page.streamQuality, headers: page.streamHeaders)
         }
-
-        let preferred = StreamQualityStore.pick(from: streamPages)
-        var ordered = streamPages
-        if let preferred, let idx = ordered.firstIndex(where: { $0.streamURL == preferred.streamURL }) {
-            ordered.remove(at: idx)
-            ordered.insert(preferred, at: 0)
-        }
-
-        let sheet = UIAlertController(
-            title: NSLocalizedString("SELECT_QUALITY", comment: ""),
-            message: nil,
-            preferredStyle: .actionSheet
-        )
-        for page in ordered {
-            var label = page.streamQuality ?? page.streamURL ?? "Stream"
-            if page.streamURL == preferred?.streamURL {
-                label += " ★"
-            }
-            sheet.addAction(UIAlertAction(title: label, style: .default) { [weak self] _ in
-                if let quality = page.streamQuality {
-                    StreamQualityStore.setPreferredQuality(quality)
-                }
-                self?.presentStreamPlayer(for: page)
-            })
-        }
-        sheet.addAction(UIAlertAction(title: NSLocalizedString("CANCEL", comment: ""), style: .cancel))
-        if let pop = sheet.popoverPresentationController {
-            pop.sourceView = view
-            pop.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1)
-        }
-        present(sheet, animated: true)
-    }
-
-    /// Ashura: presents the video player for a `.stream` page instead of the image/text readers.
-    private func presentStreamPlayer(for page: Page) {
-        activityIndicator.stopAnimating()
-        guard let urlString = page.streamURL, let url = URL(string: urlString) else {
+        guard !options.isEmpty else {
             showLoadFailAlert()
             return
         }
+
+        let picked = StreamQualityStore.pick(from: streamPages)
+        let initialIndex = picked.flatMap { page in
+            options.firstIndex(where: { $0.url.absoluteString == page.streamURL })
+        } ?? 0
+
         let progressKey = ContinueWatchingStore.makeKey(
             sourceId: manga.sourceKey,
             mangaId: manga.key,
             chapterId: chapter.key
         )
         let startPosition = ContinueWatchingStore.progress(key: progressKey)?.position ?? 0
-        let titleSuffix = page.streamQuality.map { " (\($0))" } ?? ""
         let playerViewController = VideoPlayerViewController(
-            streamURL: url,
-            headers: page.streamHeaders,
-            title: (chapter.title ?? manga.title) + titleSuffix,
+            streams: options,
+            initialIndex: initialIndex,
+            title: chapter.title ?? manga.title,
             startPosition: startPosition,
             progressKey: progressKey
         )
         playerViewController.modalPresentationStyle = .fullScreen
 
-        // dismiss the reader chrome entirely instead of stacking the player on top of it, so the
-        // user isn't left inside the manga reader once they close the video.
+        // Dismiss the reader chrome entirely instead of stacking the player on top of it.
         if let host = navigationController?.presentingViewController ?? presentingViewController {
             host.dismiss(animated: true) {
                 host.present(playerViewController, animated: true)
