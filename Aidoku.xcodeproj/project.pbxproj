@@ -35,6 +35,9 @@
 		A5FACADE00000000000B0002 /* ContinueWatchingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FACADE00000000000B0001 /* ContinueWatchingStore.swift */; };
 		A5FACADE00000000000B0003 /* ContinueWatchingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FACADE00000000000B0001 /* ContinueWatchingStore.swift */; };
 		A5FACADE00000000000C0002 /* VideoPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FACADE00000000000C0001 /* VideoPlayerViewController.swift */; };
+		A5FACADE00000000000D0002 /* StreamQualityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FACADE00000000000D0001 /* StreamQualityStore.swift */; };
+		A5FACADE00000000000D0003 /* StreamQualityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FACADE00000000000D0001 /* StreamQualityStore.swift */; };
+		A5FACADE00000000000E0002 /* StreamPlaybackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FACADE00000000000E0001 /* StreamPlaybackViewController.swift */; };
 		66C7E95B2ED77BBD0026FD6C /* ImageProcessingSettingsKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C7E95A2ED77BB50026FD6C /* ImageProcessingSettingsKey.swift */; };
 		723D3AF92E0DC5A5003ED4CF /* DownloadedMangaInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723D3AF82E0DC5A5003ED4CF /* DownloadedMangaInfo.swift */; };
 		723D3AFA2E0DC5A5003ED4CF /* DownloadedMangaInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723D3AF82E0DC5A5003ED4CF /* DownloadedMangaInfo.swift */; };
@@ -645,6 +648,8 @@
 		A5FACADE00000000000A0001 /* MediaKindPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKindPreferences.swift; sourceTree = "<group>"; };
 		A5FACADE00000000000B0001 /* ContinueWatchingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueWatchingStore.swift; sourceTree = "<group>"; };
 		A5FACADE00000000000C0001 /* VideoPlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerViewController.swift; sourceTree = "<group>"; };
+		A5FACADE00000000000D0001 /* StreamQualityStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamQualityStore.swift; sourceTree = "<group>"; };
+		A5FACADE00000000000E0001 /* StreamPlaybackViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPlaybackViewController.swift; sourceTree = "<group>"; };
 		66C7E95A2ED77BB50026FD6C /* ImageProcessingSettingsKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessingSettingsKey.swift; sourceTree = "<group>"; };
 		723D3AF82E0DC5A5003ED4CF /* DownloadedMangaInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadedMangaInfo.swift; sourceTree = "<group>"; };
 		723D3AFB2E0DC5C4003ED4CF /* DownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsView.swift; sourceTree = "<group>"; };
@@ -1213,6 +1218,7 @@
 			isa = PBXGroup;
 			children = (
 				A5FACADE00000000000C0001 /* VideoPlayerViewController.swift */,
+				A5FACADE00000000000E0001 /* StreamPlaybackViewController.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -2306,6 +2312,7 @@
 				56815D972FBC7078001486C8 /* NotificationManager.swift */,
 				A5FACADE00000000000A0001 /* MediaKindPreferences.swift */,
 				A5FACADE00000000000B0001 /* ContinueWatchingStore.swift */,
+				A5FACADE00000000000D0001 /* StreamQualityStore.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -2898,6 +2905,8 @@
 				A5FACADE00000000000A0002 /* MediaKindPreferences.swift in Sources */,
 				A5FACADE00000000000B0002 /* ContinueWatchingStore.swift in Sources */,
 				A5FACADE00000000000C0002 /* VideoPlayerViewController.swift in Sources */,
+				A5FACADE00000000000D0002 /* StreamQualityStore.swift in Sources */,
+				A5FACADE00000000000E0002 /* StreamPlaybackViewController.swift in Sources */,
 				FB1B51B328E35B4700D3CE0E /* ReaderWebtoonViewModel.swift in Sources */,
 				FB4C09D729B01AD2009E0761 /* ReaderWebtoonPageNode.swift in Sources */,
 				4875B8252BA6F2C3001E39CA /* MangaUpdateManager.swift in Sources */,
@@ -3197,6 +3206,7 @@
 				56815D992FBC7078001486C8 /* NotificationManager.swift in Sources */,
 				A5FACADE00000000000A0003 /* MediaKindPreferences.swift in Sources */,
 				A5FACADE00000000000B0003 /* ContinueWatchingStore.swift in Sources */,
+				A5FACADE00000000000D0003 /* StreamQualityStore.swift in Sources */,
 				FB0CAA5C28A998650024561A /* CoreDataManager+Category.swift in Sources */,
 				FB7B7E962787740A001E6EAF /* WasmJson.swift in Sources */,
 				FB6340B4278F89930072A2A2 /* Filter.swift in Sources */,
@@ -3475,7 +3485,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.8.5;
+				MARKETING_VERSION = 0.8.6;
 				PRODUCT_NAME = Ashura;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -3518,7 +3528,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.8.5;
+				MARKETING_VERSION = 0.8.6;
 				PRODUCT_NAME = Ashura;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;

@@ -1407,6 +1407,19 @@ extension LibraryViewController {
                         title: info.title ?? "",
                         chapters: sortedChapters
                     )
+
+                    // Ashura: anime sources play their episode streams directly, without
+                    // opening the manga/text reader.
+                    if AppMediaKind(source.mediaKind) == .anime {
+                        let streamController = StreamPlaybackViewController(
+                            source: source,
+                            manga: manga,
+                            chapter: chapter
+                        )
+                        present(streamController, animated: true)
+                        return
+                    }
+
                     let readerController = ReaderViewController(
                         source: source,
                         manga: manga,

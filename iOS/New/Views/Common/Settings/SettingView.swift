@@ -968,6 +968,15 @@ extension SettingView {
         SettingsStore.shared.set(key: storeKey + Self.cookieKeysKeySuffix, value: keys)
         SettingsStore.shared.set(key: storeKey + Self.cookieValuesKeySuffix, value: values)
 
+        @MainActor
+        func completeLogin() {
+            SettingsStore.shared.set(key: storeKey, value: "logged_in")
+            showLoginWebView = false
+            for refresh in setting.refreshes {
+                NotificationCenter.default.post(name: Notification.Name("refresh-\(refresh)"), object: nil)
+            }
+        }
+
         guard let source, source.features.handlesWebLogin else {
             // Without a handler: only close when a watched localStorage auth key appears.
             let watched = Set(value.localStorageKeys ?? [])
@@ -975,8 +984,9 @@ extension SettingView {
                 watched.contains(key) && !val.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             }
             if hasAuthStorage {
-                SettingsStore.shared.set(key: storeKey, value: "logged_in")
-                showLoginWebView = false
+                Task { @MainActor in
+                    completeLogin()
+                }
             }
             return
         }
@@ -984,10 +994,18 @@ extension SettingView {
         Task {
             do {
                 let success = try await source.handleWebLogin(key: setting.key, cookies: merged)
-                if success {
-                    SettingsStore.shared.set(key: storeKey, value: "logged_in")
-                    showLoginWebView = false
+                guard success else { return }
+                // Let the source know login completed (e.g. so it can fetch/store the profile)
+                // before dismissing the sheet, mirroring the notification handling used for
+                // basic/oauth login and regular setting value changes.
+                if let notification = setting.notification {
+                    do {
+                        try await source.handleNotification(notification: notification)
+                    } catch {
+                        LogManager.logger.error("Error handling setting notification for \(source.key): \(error)")
+                    }
                 }
+                await completeLogin()
             } catch {
                 LogManager.logger.error("Error handling web login for \(source.key): \(error)")
             }

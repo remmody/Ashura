@@ -62,16 +62,21 @@ class VideoPlayerViewController: AVPlayerViewController {
     }
 
     private func setUpPlayer() {
-        let asset: AVURLAsset
-        if let streamHeaders, !streamHeaders.isEmpty {
-            // String key is more portable across SDK versions than AVURLAssetHTTPHeaderFieldsKey.
-            asset = AVURLAsset(
-                url: streamURL,
-                options: ["AVURLAssetHTTPHeaderFieldsKey": streamHeaders]
-            )
-        } else {
-            asset = AVURLAsset(url: streamURL)
+        // Ashura: many streaming CDNs serve silent/failing responses without a browser-like
+        // User-Agent, and playback stays silent unless the app's audio session is configured
+        // for media playback (it defaults to a category that can leave audio muted/ducked).
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback, options: [])
+        try? AVAudioSession.sharedInstance().setActive(true)
+
+        var headers = streamHeaders ?? [:]
+        if !headers.keys.contains(where: { $0.caseInsensitiveCompare("User-Agent") == .orderedSame }) {
+            headers["User-Agent"] = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15"
         }
+
+        let asset = AVURLAsset(
+            url: streamURL,
+            options: ["AVURLAssetHTTPHeaderFieldsKey": headers]
+        )
         let item = AVPlayerItem(asset: asset)
         let player = AVPlayer(playerItem: item)
         self.player = player

@@ -230,19 +230,33 @@ struct MangaView: View {
                 }
             }
             .fullScreenCover(item: $openChapter) { chapter in
-                SwiftUIReaderNavigationController(
-                    source: viewModel.source,
-                    manga: {
-                        var mangaWithFilteredChapters = viewModel.manga
-                        mangaWithFilteredChapters.chapters = if viewModel.chapterSortAscending {
-                            viewModel.chapters.reversed()
-                        } else {
-                            viewModel.chapters
-                        }
-                        return mangaWithFilteredChapters
-                    }(),
-                    chapter: chapter
-                )
+                let mangaWithFilteredChapters: AshuraRunner.Manga = {
+                    var mangaWithFilteredChapters = viewModel.manga
+                    mangaWithFilteredChapters.chapters = if viewModel.chapterSortAscending {
+                        viewModel.chapters.reversed()
+                    } else {
+                        viewModel.chapters
+                    }
+                    return mangaWithFilteredChapters
+                }()
+
+                Group {
+                    // Ashura: anime sources play their episode streams directly, without
+                    // opening the manga/text reader.
+                    if AppMediaKind(viewModel.source?.mediaKind) == .anime {
+                        SwiftUIStreamPlayerController(
+                            source: viewModel.source,
+                            manga: mangaWithFilteredChapters,
+                            chapter: chapter
+                        )
+                    } else {
+                        SwiftUIReaderNavigationController(
+                            source: viewModel.source,
+                            manga: mangaWithFilteredChapters,
+                            chapter: chapter
+                        )
+                    }
+                }
                 .ignoresSafeArea()
                 .navigationTransitionZoom(sourceID: chapter, in: transitionNamespace)
             }

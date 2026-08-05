@@ -51,6 +51,7 @@ struct WebView: UIViewRepresentable {
 
     class Coordinator: NSObject, WKNavigationDelegate, WKHTTPCookieStoreObserver {
         var parent: WebView
+        private var pollTask: Task<Void, Never>?
 
         init(parent: WebView) {
             self.parent = parent
@@ -60,26 +61,43 @@ struct WebView: UIViewRepresentable {
 
         deinit {
             WKWebsiteDataStore.default().httpCookieStore.remove(self)
+            pollTask?.cancel()
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            Task {
-                let cookies = await webView.getCookies(for: parent.url.host)
-                parent.cookies = cookies
-                if !parent.localStorageKeys.isEmpty {
-                    let storage = await webView.getLocalStorage(keys: parent.localStorageKeys)
-                    parent.localStorage = storage
-                }
+            Task { [weak self] in
+                await self?.refreshState(webView: webView)
             }
+            // SPA login flows often write the token to localStorage via JS without a full page
+            // navigation or a cookie change, so neither didFinish nor cookiesDidChange would fire
+            // again. Poll periodically while the login sheet is open to catch that case too.
+            startPollingIfNeeded(webView: webView)
         }
 
         func cookiesDidChange(in cookieStore: WKHTTPCookieStore) {
-            Task {
-                let cookies = await parent.webView.getCookies(for: parent.url.host)
-                parent.cookies = cookies
-                if !parent.localStorageKeys.isEmpty {
-                    let storage = await parent.webView.getLocalStorage(keys: parent.localStorageKeys)
-                    parent.localStorage = storage
+            Task { [weak self] in
+                guard let self else { return }
+                await self.refreshState(webView: self.parent.webView)
+            }
+        }
+
+        @MainActor
+        private func refreshState(webView: WKWebView) async {
+            let cookies = await webView.getCookies(for: parent.url.host)
+            parent.cookies = cookies
+            // Always scan localStorage (requested keys + token/auth heuristic) so SPA logins
+            // that write under unexpected key names still surface a value for handleWebLogin.
+            let storage = await webView.getLocalStorage(keys: parent.localStorageKeys)
+            parent.localStorage = storage
+        }
+
+        private func startPollingIfNeeded(webView: WKWebView) {
+            guard pollTask == nil else { return }
+            pollTask = Task { [weak self, weak webView] in
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: 1_500_000_000)
+                    guard !Task.isCancelled, let self, let webView else { return }
+                    await self.refreshState(webView: webView)
                 }
             }
         }
