@@ -30,6 +30,7 @@ struct Page: Hashable {
     var streamURL: String?
     var streamHeaders: [String: String]?
     var streamMime: String?
+    var streamQuality: String?
 
     var context: PageContext?
     var hasDescription: Bool = false
@@ -69,7 +70,12 @@ extension Page {
         } else if let zipURL, let url = URL(string: zipURL), let imageURL {
             .zipFile(url: url, filePath: imageURL)
         } else if let streamURL, let url = URL(string: streamURL) {
-            .stream(AshuraRunner.StreamInfo(url: url, headers: streamHeaders, mime: streamMime))
+            .stream(AshuraRunner.StreamInfo(
+                url: url,
+                quality: streamQuality,
+                headers: streamHeaders,
+                mime: streamMime
+            ))
         } else {
             .text("Invalid URL")
         }

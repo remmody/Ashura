@@ -1,4 +1,4 @@
-//
+﻿//
 //  MyAnimeListTracker.swift
 //  Aidoku
 //
@@ -19,6 +19,9 @@ final class MyAnimeListTracker: OAuthTracker {
 
     let callbackHost = "myanimelist-auth"
     var oauthClient: OAuthClient { api.oauth }
+
+    // Ashura: MAL anime list API exists; wire episode sync in follow-up.
+    let supportsAnime = true
 
     func getTrackerInfo() -> TrackerInfo {
         .init(supportedStatuses: TrackStatus.defaultStatuses, scoreType: .tenPoint)

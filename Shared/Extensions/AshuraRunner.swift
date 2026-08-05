@@ -436,6 +436,7 @@ extension AshuraRunner.Page {
                     streamURL: info.url.absoluteString,
                     streamHeaders: info.headers,
                     streamMime: info.mime,
+                    streamQuality: info.quality,
                     hasDescription: hasDescription,
                     description: description
                 )

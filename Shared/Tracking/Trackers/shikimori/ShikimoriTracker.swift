@@ -1,4 +1,4 @@
-//
+﻿//
 //  ShikimoriTracker.swift
 //  Aidoku
 //
@@ -18,6 +18,9 @@ final class ShikimoriTracker: OAuthTracker {
 
     let callbackHost = "shikimori-auth"
     var oauthClient: OAuthClient { api.oauth }
+
+    // Ashura: Shikimori supports anime rates; wire anime search/update in follow-up.
+    let supportsAnime = true
 
     func getTrackerInfo() -> TrackerInfo {
         .init(supportedStatuses: TrackStatus.defaultStatuses, scoreType: .tenPoint)

@@ -840,8 +840,9 @@ extension ReaderViewController: ReaderHoldingDelegate {
     func setPages(_ pages: [Page]) {
         // Ashura: if the chapter is a video stream (anime), present the video player instead
         // of any of the image/text readers.
-        if let streamPage = pages.first, streamPage.isStreamPage {
-            presentStreamPlayer(for: streamPage)
+        let streamPages = pages.filter(\.isStreamPage)
+        if !streamPages.isEmpty {
+            presentStreamPlayer(from: streamPages)
             return
         }
 
@@ -886,6 +887,32 @@ extension ReaderViewController: ReaderHoldingDelegate {
         }
     }
 
+    /// Ashura: presents the video player for `.stream` page(s). If multiple qualities exist, ask first.
+    private func presentStreamPlayer(from streamPages: [Page]) {
+        activityIndicator.stopAnimating()
+        if streamPages.count == 1 {
+            presentStreamPlayer(for: streamPages[0])
+            return
+        }
+        let sheet = UIAlertController(
+            title: NSLocalizedString("SELECT_QUALITY", comment: ""),
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+        for page in streamPages {
+            let label = page.streamQuality ?? page.streamURL ?? "Stream"
+            sheet.addAction(UIAlertAction(title: label, style: .default) { [weak self] _ in
+                self?.presentStreamPlayer(for: page)
+            })
+        }
+        sheet.addAction(UIAlertAction(title: NSLocalizedString("CANCEL", comment: ""), style: .cancel))
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = view
+            pop.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1)
+        }
+        present(sheet, animated: true)
+    }
+
     /// Ashura: presents the video player for a `.stream` page instead of the image/text readers.
     private func presentStreamPlayer(for page: Page) {
         activityIndicator.stopAnimating()
@@ -899,10 +926,11 @@ extension ReaderViewController: ReaderHoldingDelegate {
             chapterId: chapter.key
         )
         let startPosition = ContinueWatchingStore.progress(key: progressKey)?.position ?? 0
+        let titleSuffix = page.streamQuality.map { " (\($0))" } ?? ""
         let playerViewController = VideoPlayerViewController(
             streamURL: url,
             headers: page.streamHeaders,
-            title: chapter.title ?? manga.title,
+            title: (chapter.title ?? manga.title) + titleSuffix,
             startPosition: startPosition,
             progressKey: progressKey
         )

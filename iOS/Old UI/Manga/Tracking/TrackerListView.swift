@@ -65,8 +65,13 @@ struct TrackerListView: View {
             }
         }
         .task {
+            let isAnime = SourceManager.shared.source(for: manga.sourceKey)?.mediaKind == .anime
             var trackers: [Tracker] = []
             for tracker in TrackerManager.trackers {
+                // Ashura: for anime titles, only offer trackers that support anime.
+                if isAnime && !tracker.supportsAnime {
+                    continue
+                }
                 let canRegister = tracker.canRegister(sourceKey: manga.sourceKey, mangaKey: manga.key)
                 if canRegister {
                     let info = try? await tracker.getTrackerInfo()
