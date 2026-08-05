@@ -5,6 +5,7 @@
 //  Ashura: minimal AVKit-based video player shell for anime streaming sources.
 //
 
+import AVFoundation
 import AVKit
 import UIKit
 
@@ -61,10 +62,15 @@ class VideoPlayerViewController: AVPlayerViewController {
     }
 
     private func setUpPlayer() {
-        let asset: AVURLAsset = if let streamHeaders, !streamHeaders.isEmpty {
-            AVURLAsset(url: streamURL, options: [AVURLAssetHTTPHeaderFieldsKey: streamHeaders])
+        let asset: AVURLAsset
+        if let streamHeaders, !streamHeaders.isEmpty {
+            // String key is more portable across SDK versions than AVURLAssetHTTPHeaderFieldsKey.
+            asset = AVURLAsset(
+                url: streamURL,
+                options: ["AVURLAssetHTTPHeaderFieldsKey": streamHeaders]
+            )
         } else {
-            AVURLAsset(url: streamURL)
+            asset = AVURLAsset(url: streamURL)
         }
         let item = AVPlayerItem(asset: asset)
         let player = AVPlayer(playerItem: item)
