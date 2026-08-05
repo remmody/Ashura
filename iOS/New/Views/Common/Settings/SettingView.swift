@@ -937,42 +937,59 @@ extension SettingView {
             }
             .navigationTitle(setting.title)
             .navigationBarTitleDisplayMode(.inline)
-            .onChange(of: loginCookies) { newValue in
-                let key = key(setting.key)
-                let keys = Array(newValue.keys)
-                let values = keys.map { newValue[$0]! }
-                SettingsStore.shared.set(key: key + Self.cookieKeysKeySuffix, value: keys)
-                SettingsStore.shared.set(key: key + Self.cookieValuesKeySuffix, value: values)
-
-                func commit() {
-                    if newValue.isEmpty {
-                        SettingsStore.shared.remove(key: key)
-                    } else {
-                        SettingsStore.shared.set(key: key, value: "logged_in") // set key to indicate logged in
-                    }
-                }
-
-                if let source, source.features.handlesWebLogin {
-                    Task {
-                        do {
-                            let success = try await source.handleWebLogin(key: setting.key, cookies: newValue)
-                            if success {
-                                showLoginWebView = false
-                                commit()
-                            }
-                        } catch {
-                            LogManager.logger.error("Error handling web login for \(source.key): \(error)")
-                        }
-                    }
-                } else {
-                    commit()
-                }
+            .onChange(of: loginCookies) { _ in
+                handleWebLoginStateUpdate(value: value)
             }
             .onChange(of: loginLocalStorage) { newValue in
                 let key = key(setting.key)
                 for (lsKey, lsValue) in newValue {
                     SettingsStore.shared.set(key: key + Self.localStoragePrefix + lsKey, value: lsValue)
                 }
+                // Token often lives in localStorage (AniLiberty); merge into web-login handler.
+                handleWebLoginStateUpdate(value: value)
+            }
+        }
+    }
+
+    /// Merge cookies + localStorage and ask the source if login completed.
+    /// Never dismiss / mark logged-in until the source returns success.
+    private func handleWebLoginStateUpdate(value: LoginSetting) {
+        var merged = loginCookies
+        for (lsKey, lsValue) in loginLocalStorage {
+            if merged[lsKey] == nil || merged[lsKey]?.isEmpty == true {
+                merged[lsKey] = lsValue
+            }
+            merged["ls.\(lsKey)"] = lsValue
+        }
+
+        let storeKey = key(setting.key)
+        let keys = Array(merged.keys)
+        let values = keys.map { merged[$0]! }
+        SettingsStore.shared.set(key: storeKey + Self.cookieKeysKeySuffix, value: keys)
+        SettingsStore.shared.set(key: storeKey + Self.cookieValuesKeySuffix, value: values)
+
+        guard let source, source.features.handlesWebLogin else {
+            // Without a handler: only close when a watched localStorage auth key appears.
+            let watched = Set(value.localStorageKeys ?? [])
+            let hasAuthStorage = loginLocalStorage.contains { key, val in
+                watched.contains(key) && !val.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            }
+            if hasAuthStorage {
+                SettingsStore.shared.set(key: storeKey, value: "logged_in")
+                showLoginWebView = false
+            }
+            return
+        }
+
+        Task {
+            do {
+                let success = try await source.handleWebLogin(key: setting.key, cookies: merged)
+                if success {
+                    SettingsStore.shared.set(key: storeKey, value: "logged_in")
+                    showLoginWebView = false
+                }
+            } catch {
+                LogManager.logger.error("Error handling web login for \(source.key): \(error)")
             }
         }
     }
