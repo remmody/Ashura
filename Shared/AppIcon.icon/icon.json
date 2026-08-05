@@ -1,15 +1,16 @@
 {
   "fill" : {
-    "solid" : "srgb:1.00000,0.18431,0.32157,1.00000"
+    "solid" : "display-p3:0.11000,0.03900,0.18800,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
-          "glass" : true,
+          "fill" : "none",
+          "glass" : false,
           "hidden" : false,
-          "image-name" : "読.svg",
-          "name" : "読",
+          "image-name" : "Ashura.png",
+          "name" : "Ashura",
           "position" : {
             "scale" : 1,
             "translation-in-points" : [
@@ -21,10 +22,10 @@
       ],
       "shadow" : {
         "kind" : "neutral",
-        "opacity" : 0.5
+        "opacity" : 0.35
       },
       "translucency" : {
-        "enabled" : true,
+        "enabled" : false,
         "value" : 0.5
       }
     }
